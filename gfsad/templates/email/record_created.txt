@@ -1,0 +1,3 @@
+A record has been created.
+
+    {{ data }}

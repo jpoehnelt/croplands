@@ -1,0 +1,58 @@
+<div class="am-fade" ng-hide="ndviBusy">
+    <h5>NDVI Time Series<small>MOD13Q1</small></h5>
+    <svg version="1.1" id="ndvi-svg" xmlns="http://www.w3.org/2000/svg"
+	 viewBox="0 0 400 280" style="width: 100%;" xml:space="preserve">
+
+
+        <polyline class="axis" fill="none" stroke="#000000" points="20,10 20,220 400,220 "></polyline>
+        <g class="time-series">
+            <g ng-repeat="(year, data) in series">
+                <polyline class="{{ data.class }}"
+                          ng-mouseover="activate(year)"
+                          ng-mouseleave="deactivate()"
+                          fill="none"
+                          stroke="{{ data.color }}"
+                          ng-attr-points="{{ data.points }}"></polyline>
+            </g>
+        </g>
+        <g class="horizontal-labels">
+            <text x="0" y="20" alignment-baseline="middle">1</text>
+            <text x="0" y="220" alignment-baseline="middle">0</text>
+        </g>
+        <g class="vertical-grids hidden">
+            <polyline stroke="#dddddd" file="none" points="45,20 45,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="75,20 75,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="105,20 105,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="135,20 135,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="165,20 165,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="195,20 195,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="225,20 225,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="255,20 255,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="285,20 285,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="315,20 315,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="345,20 345,220"></polyline>
+            <polyline stroke="#dddddd" file="none" points="375,20 375,220"></polyline>
+        </g>
+        <g class="vertical-labels">
+            <text x="45" y="230" transform="rotate(90, 45, 230)" alignment-baseline="middle">Jan</text>
+            <text x="75" y="230" transform="rotate(90, 75, 230)" alignment-baseline="middle">Feb</text>
+            <text x="105" y="230" transform="rotate(90, 105, 230)" alignment-baseline="middle">Mar</text>
+            <text x="135" y="230" transform="rotate(90, 135, 230)" alignment-baseline="middle">Apr</text>
+            <text x="165" y="230" transform="rotate(90, 165, 230)" alignment-baseline="middle">May</text>
+            <text x="195" y="230" transform="rotate(90, 195, 230)" alignment-baseline="middle">Jun</text>
+            <text x="225" y="230" transform="rotate(90, 225, 230)" alignment-baseline="middle">Jul</text>
+            <text x="255" y="230" transform="rotate(90, 255, 230)" alignment-baseline="middle">Aug</text>
+            <text x="285" y="230" transform="rotate(90, 285, 230)" alignment-baseline="middle">Sep</text>
+            <text x="315" y="230" transform="rotate(90, 315, 230)" alignment-baseline="middle">Oct</text>
+            <text x="345" y="230" transform="rotate(90, 345, 230)" alignment-baseline="middle">Nov</text>
+            <text x="375" y="230" transform="rotate(90, 375, 230)" alignment-baseline="middle">Dec</text>
+        </g>
+    </svg>
+    <div class="clearfix" style="padding-left: 20px;">
+        <small class="pull-left year-label" style="margin: 0 10px;" ng-repeat="(year, data) in series"
+               ng-mouseover="activate(year)"
+               ng-mouseleave="deactivate()"><span ng-class="{'inactive': data.class==='inactive'}">{{ year }}</span>
+        <icon class="fa fa-square" ng-style="{ 'color': data.color }"></icon>
+        </small>
+    </div>
+</div>

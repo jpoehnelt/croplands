@@ -1,0 +1,135 @@
+<div class="control" class="control am-slide-left" id="data-properties">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <i class="fa fa-close" ng-click="close()"></i>
+            <h5 class="panel-title">
+                <span ng-show="busy"><i class="fa fa-refresh fa-spin"></i> Working</span>
+
+        <span ng-show="!busy && location.records.length > 0"
+              ng-repeat="record in location.records | orderBy:['year','month']: true | limitTo: 1">
+             <i class="fa fa-fw fa-map-marker"></i> {{ record.year }}:
+            <span ng-show="record.land_use_type !== 1">{{ record.land_use_type | mappings: 'landUseType' }}</span>
+            <span ng-show="record.land_use_type === 1">Cropland -
+                {{ record.crop_primary | mappings: 'crop' }}</span>
+
+        </span>
+                <span ng-show="!busy && !location.records.length">New Location</span>
+            </h5>
+        </div>
+        <div class="panel-body" style="width:400px;">
+            <div class="row row-condensed">
+                <div class="col-xs-1">
+                    <ul class="nav nav-pills">
+                        <a class="list-group-item hidden" ng-click="changeActiveTab('properties')"
+                           ng-class="{ active: activeTab === 'properties'}"
+                           data-title="Edit Location Attributes" data-placement="right" bs-tooltip>
+                            <i class="fa fa-edit"></i>
+                        </a>
+                        <a class="list-group-item" ng-click="changeActiveTab('records')"
+                           ng-class="{ active: activeTab === 'records'}"
+                           data-title="Edit Location Records" data-placement="right" bs-tooltip>
+                            <i class="fa fa-list-ul"></i>
+                        </a>
+                        <a class="list-group-item"
+                           ng-click="changeActiveTab('photos')"
+                           ng-class="{ active: activeTab === 'photos', 'disabled': location.photos === undefined || location.photos.length === 0}"
+                           data-title="Photos" data-placement="right" bs-tooltip>
+                            <i class="fa fa-photo"></i>
+                        </a>
+                        <a class="list-group-item" ng-click="changeActiveTab('chart')"
+                           ng-class="{ active: activeTab === 'chart'}" data-title="Time Series"
+                           data-placement="right"
+                           bs-tooltip>
+                            <i class="fa fa-line-chart"></i>
+                        </a>
+                        <a class="list-group-item hidden" ng-click="changeActiveTab('comments')"
+                           ng-class="{ active: activeTab === 'comments'}" data-title="Comments"
+                           data-placement="right"
+                           bs-tooltip>
+                            <i class="fa fa-comments-o"></i>
+                        </a>
+                        <a class="list-group-item" ng-click="changeActiveTab('help')"
+                           ng-class="{ active: activeTab === 'help'}" data-title="Help"
+                           data-placement="right"
+                           bs-tooltip>
+                            <i class="fa fa-question"></i>
+                        </a>
+                    </ul>
+                </div>
+                <div class="col-xs-11">
+                    <div style="padding: 0 0 0 8px;">
+                        <div class="properties" ng-show="activeTab === 'properties'">
+                            <div ng-show="!editLoading">
+                                edit properties
+                            </div>
+                        </div>
+
+                        <div class="photos" ng-show="activeTab === 'photos'" ng-cloak>
+                            <div ng-show="!editLoading">
+                                <photos items="location.photos"
+                                        ng-show="location.photos && location.photos.length >= 1"></photos>
+                            </div>
+                        </div>
+                        <div class="chart" ng-show="activeTab === 'chart'">
+                            <ndvi data-lat="location.lat" data-lon="location.lon"></ndvi>
+                        </div>
+                        <div class="records" ng-show="activeTab === 'records'">
+                            <button class="btn btn-default btn-block btn-sm"
+                                    ng-click="addRecordRow()" blur>Create New Record
+                            </button>
+                            <div data-location-record-list data-records="location.records"
+                                 data-page="0" data-page-size="6" data-show-zoom="false"
+                                 ng-if="location.records.length"></div>
+                        </div>
+                        <div class="comments" ng-show="activeTab === 'comments'">Comments</div>
+                        <div class="help" ng-show="activeTab === 'help'">
+                            <h6>Training and Validation Data</h6>
+
+                            <p class="small">Our training and validation data are two different
+                                data sets that we have
+                                combined
+                                to show you here. Please make contributions if you have knowledge
+                                of this location.</p>
+
+                            <p class="small"> Note: All changes are reviewed and may
+                                not be immediately visible.</p>
+
+
+                            <h6>Definitions</h6>
+                            <ul class="list-unstyled small">
+                                <li>Intensity - Frequency of Harvest in a Single Year</li>
+                                <li>Water - Irrigated or Rainfed Crops</li>
+                            </ul>
+                            <h6>Alpha Version</h6>
+
+                            <p class="small">This functionality is currently a work in progress. If
+                                you have feedback,
+                                contact
+                                us at info@land_use_types.org.</p>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+        <div class="panel-footer clearfix">
+    <span class="pull-left small text-muted"
+          ng-show="!busy">{{ location.lat }} &nbsp; {{ location.lon }}
+    </span>
+                <span class="pull-right right">
+                    <button id="zoomToMarkerBtn"
+                            class="btn btn-primary btn-xs"
+                            ng-class="{'disabled': busy}"
+                            ng-click="zoom($event)"
+                            data-title="Zoom to Location"
+                            data-placement="top"
+                            bs-tooltip><i class="fa fa-fw fa-search-plus"></i></button>
+
+                    </span>
+        </div>
+    </div>
+
+</div>

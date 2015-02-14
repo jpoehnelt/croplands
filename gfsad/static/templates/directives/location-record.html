@@ -1,0 +1,25 @@
+<div class="map-record" ng-class="{'active': showEditForm, 'new': !record.id}">
+    <div class="row row-condensed">
+        <div class="col-xs-3 center">
+            <div class="year">{{ record.year }} {{ record.month | monthName }}
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="details center">
+                     <span ng-show="record.land_use_type !== 1">
+                        {{ record.land_use_type | mappings: 'landUseType' }}
+                    </span>
+                    <span ng-show="record.land_use_type === 1">
+                        {{ record.water | mappings: 'water' }}
+                        {{ record.intensity | mappings: 'intensity' }}
+                        {{ record.crop_primary | mappings: 'crop' }}
+                    </span>
+            </div>
+        </div>
+        <div class="col-xs-3 right">
+            <icon class="fa fa-fw fa-edit fa-btn" ng-click="edit()" blur></icon>
+            <icon class="fa fa-fw fa-search-plus fa-btn" ng-click="zoom()"
+                  ng-show="showZoom"></icon>
+        </div>
+    </div>
+</div>

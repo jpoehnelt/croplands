@@ -1,0 +1,34 @@
+<div class="modal modal-bg">
+    <div class="modal-dialog modal-sm">
+        <div class="panel panel-primary">
+            <div class="panel-heading clearfix">
+                <i class="fa fa-close panel-close" ng-click="close()"></i>
+                <h5 class="panel-title panel-float">Change Password</h5>
+            </div>
+            <div class="panel-body">
+                <form name="resetForm">
+                    <div data-password-confirm data-valid="passwordValid"
+                         data-min-entropy="30"
+                         data-password="password">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-block btn-default btn-primary"
+                                ng-class="{'disabled': !passwordValid || !resetForm.$valid || busy}"
+                                ng-click="reset()" blur>Change
+                        </button>
+                    </div>
+                    <div class="alert"
+                         ng-show="message.length"
+                         ng-class="{'alert-success': success, 'alert-danger': !success}">
+                        <strong ng-show="success">Success!</strong>
+                        <strong ng-show="!success">Error!</strong>
+                        {{ message }}
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
