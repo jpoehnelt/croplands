@@ -3,11 +3,9 @@ python:
 - '2.7'
 install:
 - pip install -r requirements.txt
+- pip install coverage
 - pip install python-coveralls
 script: coverage run --source=gfsad setup.py test
 after_success: coveralls
 env:
   global:
-  - secure: HYlhcxillnrTxqQ5GagkeU7fcVKa41uwW34hDdpB1qq1+lB1A7TBlNWWcDHSblbazJ5uGgS3GmJNRylU4P34mWDZ1ZDApr+lc5wnIHVPElziJ54b/qdWkL2RJDIYzC+3nN17j9TykFPErpUfD/X3j+7kPlX31EeGUFXUHmLheL4=
-  - secure: W8iCS4b8J1bmwdrFqfrIrQPms5kGWE46tZ9D7y+GFrzlx5pucMGxhypH/qrbQ/Mhx40nTNoYorgGNS7ENX6F7N58W+rSVZlokpst52VvfBKlkGVUT9gdDcBZZsa03ACkCXrWv7eGyTFPCqVEeBBFZkzNADpTI5E6mpWWsA8mhDg=
-  - secure: eZahuIkQBIe0UsL5sspS58D/WuymzwKsiezdss8rKiEV5FmzTwJh1UkFuqPKl+gZhONURRPJ+5W+SI8yrCwI5hPWLcrOr4ZCFM/lb0EHTAtx64r8RRinGQDYRM/nvhb4RaZOSeJegJbDsTDi+MKhKdJqZCqumMs3G+kG+rV0w78=
