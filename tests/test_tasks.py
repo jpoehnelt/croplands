@@ -25,8 +25,6 @@ class TestTasks(TestCase):
     def setUpClass(cls):
         super(TestTasks, cls).setUpClass()
         cls.app = create_app('gfsad.config.testing')
-        with cls.app.app_context():
-            db.create_all()
 
     def test_get_ndvi(self):
         with self.app.app_context():

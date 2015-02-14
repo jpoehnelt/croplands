@@ -1,4 +1,4 @@
-from gfsad import create_app
+from gfsad import create_app, db, limiter
 from gfsad.utils.s3 import upload_photo, delete_photo
 import unittest
 import base64
@@ -10,7 +10,15 @@ class TestUtilsS3(unittest.TestCase):
 
     def setUp(self):
         self.app = TestUtilsS3.app
+        with self.app.app_context():
+            limiter.enabled = False
+            db.create_all()
 
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
+            
     @classmethod
     def setUpClass(cls):
         super(TestUtilsS3, cls).setUpClass()
