@@ -1,7 +1,7 @@
 from gfsad import api
 from gfsad.auth import load_user
-from gfsad.models import Record, RecordHistory, RecordRating, Location, db, User, Notification
-from gfsad.tasks import send_email, add
+from gfsad.models import Record, RecordHistory, RecordRating, db, Notification
+from gfsad.tasks import add
 from gfsad.tasks.records import build_static_records
 from processors import (
     api_roles,
@@ -9,11 +9,8 @@ from processors import (
     remove_relations
 )
 import json
-from flask_mail import Message
 from flask_restless.helpers import to_dict
-from flask import render_template
 import copy
-from json2html import *
 
 
 def save_record_state_to_history(result=None, **kwargs):
