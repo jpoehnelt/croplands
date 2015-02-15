@@ -85,6 +85,7 @@ def create_app(config):
     cache.init_app(app)
     compress.init_app(app)
     mail.init_app(app)
+    api.init_app(app, flask_sqlalchemy_db=db)
 
     # import and register all of the blueprints
     from gfsad.views.public import public
@@ -97,14 +98,9 @@ def create_app(config):
     app.register_blueprint(aws)
     app.register_blueprint(auth)
 
-    # setup blueprint and api endpoints
-    api.init_app(app, flask_sqlalchemy_db=db)
-    from views.api.locations import location_api
-    from views.api.photo import photo_api
-    from views.api.ratings import rating_api
-    from views.api.records import record_api
-    from views.api.users import user_api
+    from gfsad.views.api import init_api
 
+    init_api(app)
 
     # import and init error handlers
     from gfsad.views.errors import init_error_handlers

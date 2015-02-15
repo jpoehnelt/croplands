@@ -43,8 +43,10 @@ def calculate_rating(result=None, **kwargs):
     # sum_ratings_for_record.delay(result['record_id']) #async with celery
 
 
-rating_api = api.create_api(RecordRating,
-               collection_name='ratings',
+def create(app):
+    api.create_api(RecordRating,
+                   app=app,
+                   collection_name='ratings',
                methods=['GET', 'POST', 'PATCH', 'PUT'],
                preprocessors={
                    'POST': [api_roles(['registered', 'partner', 'team', 'admin']),

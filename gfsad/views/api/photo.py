@@ -16,7 +16,6 @@ def check_for_base64(data=None, **kwargs):
     :return: None
     """
 
-
     if 'photo' in data:
         filename = 'img/' + str(uuid.uuid4()) + '.JPG'
         try:
@@ -28,13 +27,15 @@ def check_for_base64(data=None, **kwargs):
     del data['photo']
 
 
-photo_api = api.create_api(Photo,
-               collection_name='photos',
-               methods=['GET', 'PATCH', 'POST', 'DELETE'],
-               preprocessors={
-                   'POST': [api_roles(['partner', 'team', 'admin']), add_user_to_posted_data,
-                            check_for_base64],
-                   'PATCH_SINGLE': [api_roles(['team', 'admin'])],
-                   'PATCH_MANY': [api_roles('admin')]
-               },
-)
+def create(app):
+    api.create_api(Photo,
+                   app=app,
+                   collection_name='photos',
+                   methods=['GET', 'PATCH', 'POST', 'DELETE'],
+                   preprocessors={
+                       'POST': [api_roles(['partner', 'team', 'admin']), add_user_to_posted_data,
+                                check_for_base64],
+                       'PATCH_SINGLE': [api_roles(['team', 'admin'])],
+                       'PATCH_MANY': [api_roles('admin')]
+                   },
+    )

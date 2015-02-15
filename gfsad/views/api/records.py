@@ -75,25 +75,28 @@ def notify(result=None, **kwargs):
     message = "This record has been updated by: %s %s" % (user.first, user.last)
 
     # Create Notification
-    note = Notification(record_id=result['id'], location_id=result['location_id'], subject=subject, message=message)
+    note = Notification(record_id=result['id'], location_id=result['location_id'], subject=subject,
+                        message=message)
     db.session.add(note)
     db.session.commit()
 
-record_api = api.create_api(Record,
-               collection_name='records',
-               methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-               preprocessors={
-                   'POST': [add_user_to_posted_data],
-                   'PATCH_SINGLE': [api_roles(['partner', 'team', 'admin']),
-                                    remove_relations],
-                   'PATCH_MANY': [api_roles('admin'), remove_relations],
-                   'DELETE': [api_roles('admin')]
-               },
-               postprocessors={
-                   'POST': [save_record_state_to_history, update_static_records, notify],
-                   'PATCH_SINGLE': [save_record_state_to_history, notify,
-                                    update_static_records, mark_ratings_stale],
-                   'PATCH_MANY': [],
-                   'DELETE': [update_static_records]
-               }
-)
+
+def create(app):
+    api.create_api(Record,
+                   app=app, collection_name='records',
+                   methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+                   preprocessors={
+                       'POST': [add_user_to_posted_data],
+                       'PATCH_SINGLE': [api_roles(['partner', 'team', 'admin']),
+                                        remove_relations],
+                       'PATCH_MANY': [api_roles('admin'), remove_relations],
+                       'DELETE': [api_roles('admin')]
+                   },
+                   postprocessors={
+                       'POST': [save_record_state_to_history, update_static_records, notify],
+                       'PATCH_SINGLE': [save_record_state_to_history, notify,
+                                        update_static_records, mark_ratings_stale],
+                       'PATCH_MANY': [],
+                       'DELETE': [update_static_records]
+                   }
+    )

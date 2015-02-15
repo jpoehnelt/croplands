@@ -54,21 +54,23 @@ def ignore_read_only_fields(data=None, **kwargs):
             # abort(409)
 
 
-user_api = api.create_api(User,
-               collection_name='users',
-               methods=['GET', 'PATCH'],
-               results_per_page=50,
-               preprocessors={
-                   'GET_SINGLE': [check_for_me],
-                   'PATCH_SINGLE': [can_edit_the_user, remove_relations,
-                                    ignore_read_only_fields],
-                   'PATCH_MANY': [api_roles('admin'), remove_relations,
-                                  ignore_read_only_fields],
-                   'DELETE': [api_roles('admin'), ]
-               },
-               postprocessors={
-               },
-               exclude_columns=['email', 'password', 'attempts',
-                                'email_verification_token', 'status']
-)
+def create(app):
+    api.create_api(User,
+                   app=app,
+                   collection_name='users',
+                   methods=['GET', 'PATCH'],
+                   results_per_page=50,
+                   preprocessors={
+                       'GET_SINGLE': [check_for_me],
+                       'PATCH_SINGLE': [can_edit_the_user, remove_relations,
+                                        ignore_read_only_fields],
+                       'PATCH_MANY': [api_roles('admin'), remove_relations,
+                                      ignore_read_only_fields],
+                       'DELETE': [api_roles('admin'), ]
+                   },
+                   postprocessors={
+                   },
+                   exclude_columns=['email', 'password', 'attempts',
+                                    'email_verification_token', 'status']
+    )
 
