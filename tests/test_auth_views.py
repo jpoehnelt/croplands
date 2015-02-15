@@ -32,9 +32,6 @@ class TestAuthViews(TestCase):
     def setUpClass(cls):
         super(TestAuthViews, cls).setUpClass()
         cls.app = create_app('gfsad.config.testing')
-        with cls.app.app_context():
-            db.create_all()
-
 
     def test_register_methods(self):
         with self.app.test_client() as c:

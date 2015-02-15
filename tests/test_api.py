@@ -6,7 +6,7 @@ from gfsad import create_app, db, limiter
 from gfsad.auth import make_jwt
 from gfsad.models import User
 from gfsad.exceptions import Unauthorized
-
+from copy import deepcopy
 
 def get_payload(token):
     encoded_payload = token.split(".")[1].strip()
@@ -47,6 +47,7 @@ class TestApi(TestCase):
         data = {'lat': 0, 'lon': 0, 'records': []}
         headers = [('Content-Type', 'application/json')]
         post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+        self.assertEqual(post.status_code, 201)
         return json.loads(post.data)
 
     def test_who_can_edit_users(self):
