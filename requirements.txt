@@ -5,10 +5,11 @@ Flask==0.10.1
 Flask-Cache==0.13.1
 Flask-Compress==1.0.2
 Flask-Migrate==1.2.0
-Flask-Restless==0.15.1
+Flask-Restless==0.16.0
 Flask-SQLAlchemy==1.0
 Flask-Script==2.0.5
 Flask-JWT==0.2.0
+Flask-Testing
 # waiting on release Flask-Limiter==
 -e git://github.com/alisaifee/flask-limiter.git@f2c44a8377ca315f101cfb7f2df2b2ed29f56f79#egg=flask-limiter
 Flask-Celery-Helper==1.1.0
@@ -23,3 +24,4 @@ boto==2.32.1
 requests==2.3.0
 Pillow==2.6.1
 Shapely==1.5.6
+psycopg2
