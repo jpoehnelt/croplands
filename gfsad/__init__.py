@@ -68,11 +68,11 @@ def add_cors_headers(response):
     return response
 
 
-def create_app(config):
+def create_app(config='testing'):
     app = Flask(__name__)
 
     # Configure the flask app
-    app.config.from_object(config)
+    app.config.from_object("gfsad.config."+config)
 
     # initialize all of the extensions
     jwt.init_app(app)

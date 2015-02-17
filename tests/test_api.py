@@ -31,7 +31,7 @@ class TestApi(TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestApi, cls).setUpClass()
-        cls.app = create_app('gfsad.config.testing')
+        cls.app = create_app('Testing')
         with cls.app.app_context():
             db.create_all()
 

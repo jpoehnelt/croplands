@@ -14,7 +14,7 @@ class TestEmail(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestEmail, cls).setUpClass()
-        cls.app = create_app('gfsad.config.testing')
+        cls.app = create_app('Testing')
 
 
     def test_api(self):

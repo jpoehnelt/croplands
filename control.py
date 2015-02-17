@@ -10,17 +10,15 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def beat():
-    app = create_app()
     celery_args = ['celery', 'beat', '-C']
-    with app.app_context():
+    with manager.app.app_context():
         return celery_main(celery_args)
 
 
 @manager.command
 def worker(Q="gfsad-production"):
-    app = create_app('gfsad.config.production')
     celery_args = ['celery', 'worker', '-l', 'info', '-Q', Q]
-    with app.app_context():
+    with manager.app.app_context():
         return celery_main(celery_args)
 
 if __name__ == '__main__':
