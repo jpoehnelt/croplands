@@ -1,9 +1,7 @@
 from gfsad.exceptions import FieldError, UserError, Unauthorized, InvalidLocation
-from gfsad import limiter
 from gfsad.views.json_response import JSONResponse
 from itsdangerous import SignatureExpired, BadSignature
-from flask import render_template, request
-from sqlalchemy.exc import IntegrityError
+from flask import render_template, request, jsonify
 
 def init_error_handlers(app):
     @app.errorhandler(FieldError)
@@ -38,3 +36,9 @@ def init_error_handlers(app):
     @app.errorhandler(InvalidLocation)
     def invalid_location_handler(e):
         return JSONResponse(**e.__dict__)
+
+    @app.errorhandler(404)
+    def not_found(error):
+        response = jsonify({'code': 404,'message': 'No resource.'})
+        response.status_code = 404
+        return response
