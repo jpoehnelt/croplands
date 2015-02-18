@@ -22,7 +22,7 @@ class TestUtilsS3(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestUtilsS3, cls).setUpClass()
-        cls.app = create_app('gfsad.config.testing')
+        cls.app = create_app('Testing')
 
     def test_photo_upload_to_s3_from_base64(self):
         with self.app.app_context():

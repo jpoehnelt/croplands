@@ -31,7 +31,7 @@ class TestAuthViews(TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestAuthViews, cls).setUpClass()
-        cls.app = create_app('gfsad.config.testing')
+        cls.app = create_app('Testing')
 
     def test_register_methods(self):
         with self.app.test_client() as c:

@@ -10,5 +10,4 @@ services:
   - rabbitmq
 script: coverage run --source=gfsad setup.py test
 after_success: coveralls
-env:
-  global:
+

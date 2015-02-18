@@ -24,7 +24,7 @@ class TestTasks(TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestTasks, cls).setUpClass()
-        cls.app = create_app('gfsad.config.testing')
+        cls.app = create_app('Testing')
 
     def test_get_ndvi(self):
         with self.app.app_context():
@@ -32,7 +32,7 @@ class TestTasks(TestCase):
             db.session.add(location)
             db.session.commit()
 
-            get_ndvi.delay(id=location.id, lat=location.lat, lon=location.lon)
+            get_ndvi(id=location.id, lat=location.lat, lon=location.lon)
 
             time_series = TimeSeries.query.all()
 
