@@ -68,7 +68,7 @@ def add_cors_headers(response):
     return response
 
 
-def create_app(config='testing'):
+def create_app(config='Testing'):
     app = Flask(__name__)
 
     # Configure the flask app
