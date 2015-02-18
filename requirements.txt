@@ -1,6 +1,9 @@
 # Need cffi so that that python build pack installs libffi
 cffi
 
+# heroku only
+gunicorn
+
 # Flask
 Flask==0.10.1
 
