@@ -26,15 +26,15 @@ class TestTasks(TestCase):
         super(TestTasks, cls).setUpClass()
         cls.app = create_app('Testing')
 
-    def test_get_ndvi(self):
-        with self.app.app_context():
-            location = Location(lat='40.00', lon='-90.00')
-            db.session.add(location)
-            db.session.commit()
-
-            get_ndvi(id=location.id, lat=location.lat, lon=location.lon)
-
-            time_series = TimeSeries.query.all()
+    # def test_get_ndvi(self):
+    #     with self.app.app_context():
+    #         location = Location(lat='40.00', lon='-90.00')
+    #         db.session.add(location)
+    #         db.session.commit()
+    #
+    #         get_ndvi(id=location.id, lat=location.lat, lon=location.lon)
+    #
+    #         time_series = TimeSeries.query.all()
 
     def test_build_static_records(self):
         with self.app.app_context():
