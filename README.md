@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/justinwp/croplands.svg)](https://travis-ci.org/justinwp/croplands) [![Coverage Status](https://coveralls.io/repos/justinwp/croplands/badge.svg)](https://coveralls.io/r/justinwp/croplands)
+[![Build Status](https://travis-ci.org/justinwp/croplands.svg)](https://travis-ci.org/justinwp/croplands) [![Coverage Status](https://coveralls.io/repos/justinwp/croplands/badge.svg)](https://coveralls.io/r/justinwp/croplands) [![Code Health](https://landscape.io/github/justinwp/croplands/master/landscape.svg?style=flat)](https://landscape.io/github/justinwp/croplands/master)
+
 
 ##Global Food Security-Support Analysis Data##
 ###About###
