@@ -45,6 +45,8 @@ from gfsad.models import db, User
 
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'accept, content-type'
+    response.headers['Access-Control-Allow-Method'] = 'POST, GET, PATCH, DELETE'
     # Do nothing for post, patch, delete etc..
     try:
         method = [e for e in request.url_rule.methods][-1]
