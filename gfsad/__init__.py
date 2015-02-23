@@ -57,7 +57,7 @@ def add_cors_headers(response):
 
     # set cache max age
     if '/api' in request.url_rule.rule:
-        response.headers['Cache-Control'] = 'max-age=600'
+        response.headers['Cache-Control'] = 'max-age=120'
 
     elif '/gee' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=4000000'
