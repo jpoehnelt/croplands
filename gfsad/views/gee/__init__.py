@@ -1,13 +1,13 @@
 import datetime
 import time
-
 import ee
 from flask import current_app, Blueprint, jsonify, request
-
-from gfsad import limiter
+from gfsad import limiter, create_app
 
 
 gee = Blueprint('gee', __name__, url_prefix='/gee')
+
+from maps import get_africa_map
 
 # initialize earth engine with service account credentials
 def init_gee():
@@ -36,19 +36,16 @@ def extract_info(ee=ee, lat=31.74292, lon=-110.051375, date_start='2008-01-01',
 
 def get_map():
     import os
-
-    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
-    GOOGLE_SERVICE_ACCOUNT = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
-
-    ee.Initialize(ee.ServiceAccountCredentials(GOOGLE_SERVICE_ACCOUNT, key_data=GOOGLE_API_KEY))
     palette = "FFFFFF,CE7E45,DF923D,F1B555,FCD163,99B718,74A901,66A000,529400,3E8601,207401,056201,004C00,023B01,012E01,011D01,011301"
     # # landsat (L7) composites
     # # accepts a year, side effect map display of annual L7 cloud free composite
-    landSat = ee.ImageCollection("LANDSAT/LE7_L1T_ANNUAL_NDVI").filterDate(
-        '2012-01-01',
-        '2012-12-31').mean().select("NDVI")
-    mapid = landSat.getMapId({'min': 0, 'max': 1, 'palette': palette})
-    print "Map: %s" % ee.data.getTileUrl(mapid, 1, 1, 1)
+    # image = ee.Image('srtm90_v4')
+    image = ee.Image('GME/images/10477185495164119823-05285947590376469906').select(['b1']).eq(2)
+    # image = image.mask(image)
+    mapid = image.getMapId({'min': 0, 'max': 1550})
+    # print ee.data.getThumbnail(mapid)
+
+    print "Map: %s" % ee.data.getTileUrl(mapid, 1, 0, 0)
 
 
 def get_segments():
@@ -325,11 +322,10 @@ def time_series():
 #
 
 if __name__ == "__main__":
-    import os
+    app = create_app('Testing')
+    with app.app_context():
+        GOOGLE_API_KEY = app.config['GOOGLE_API_KEY']
+        GOOGLE_SERVICE_ACCOUNT = app.config['GOOGLE_SERVICE_ACCOUNT']
 
-    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
-    GOOGLE_SERVICE_ACCOUNT = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
-
-    ee.Initialize(ee.ServiceAccountCredentials(GOOGLE_SERVICE_ACCOUNT, key_data=GOOGLE_API_KEY))
-
-    print get_segments_more_bands()
+        ee.Initialize(ee.ServiceAccountCredentials(GOOGLE_SERVICE_ACCOUNT, key_data=GOOGLE_API_KEY))
+        get_map()
