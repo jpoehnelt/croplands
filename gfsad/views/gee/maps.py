@@ -28,9 +28,6 @@ def get_africa_map():
         code = code.multiply(mask)
         product = product.add(code)
 
-
-
-
     if 'cluster' in request.args:
         product = product.mask(image.mod(100).eq(int(request.args['cluster'])))
 
@@ -40,7 +37,8 @@ def get_africa_map():
     # do we want a black background???
     product = product.mask(product)
 
-    product_map = product.getMapId({'min': 1, 'max': 9, 'palette': 'B2B2B2, 505012, FF00FF, 00FFFF, FFFF00, 007A0B, 00FF00, 0000FF, A020EF'})
+    product_map = product.getMapId({'min': 1, 'max': 9,
+                                    'palette': 'B2B2B2, 505012, FF00FF, 00FFFF, FFFF00, 007A0B, 00FF00, 0000FF, A020EF'})
     print "Map: %s" % ee.data.getTileUrl(product_map, 2, 2, 2)
     return jsonify({'mapId': product_map['mapid'], 'token': product_map['token']})
 
