@@ -34,7 +34,7 @@ class Location(db.Model):
     field = db.Column(db.String)
 
     # when
-    date_created = db.Column(db.DateTime)
+    date_created = db.Column(db.DateTime, default=db.func.now())
     date_edited = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     # use
