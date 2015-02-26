@@ -78,7 +78,8 @@ def register():
 
 @auth.route('/login', methods=['POST'])
 @required_fields('email', 'password')
-@limiter.limit("10 per hour", key_func=lambda: request.json['email'])
+@limiter.limit("10 per hour", key_func=lambda: request.json['email'] if (
+        hasattr(request, 'json') and hasattr(request.json, 'email')) else request.remote_addr)
 def login():
     user = User.from_login(request.json['email'], request.json['password'])
     return JSONResponse(status_code=200, description='User logged in',
