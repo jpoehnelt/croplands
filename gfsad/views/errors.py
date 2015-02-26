@@ -12,10 +12,6 @@ def init_error_handlers(app):
     def handle_user_error(e):
         return JSONResponse(**e.__dict__)
 
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return render_template('errors/404.html'), 404
-
     @app.errorhandler(429)
     def rate_limit_handler(e):
         return JSONResponse(status_code=429, error='Exceeded Rate Limit',
@@ -27,6 +23,7 @@ def init_error_handlers(app):
 
     @app.errorhandler(BadSignature)
     def signature_expired(e):
+        print e.__dict__
         return JSONResponse(status_code=400, error='Bad Signature', description='Your token is not valid.')
 
     @app.errorhandler(Unauthorized)
