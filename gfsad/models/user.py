@@ -112,6 +112,9 @@ class User(db.Model):
             password_hash = _pwd_context.encrypt('fake password here')
         else:
             # get hashed password
+            user.attempts += 1
+            db.session.commit()
+
             password_hash = user.password
 
             # timing protection and prevents unknown hash
@@ -125,9 +128,6 @@ class User(db.Model):
 
             # return the user
             return user
-        else:
-            user.attempts += 1
-            db.session.commit()
 
         raise UserError(description='Invalid email and/or password.', status_code=401,
                         error="Unauthorized")
