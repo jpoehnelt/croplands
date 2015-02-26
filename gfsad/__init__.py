@@ -7,7 +7,9 @@ from flask_mail import Mail
 from gfsad.exceptions import FieldError
 from flask.ext.celery import Celery
 from flask_limiter import Limiter, HEADERS
-import os
+from gfsad.misc import PostMarkHandler
+import logging
+
 # APIManager.APINAME_FORMAT = 'api.{0}'
 # APIManager.BLUEPRINTNAME_FORMAT = '{0}'
 
@@ -117,6 +119,12 @@ def create_app(config='Testing'):
         :return:
         """
         return load_user() != "anonymous"
+
+    if 'POSTMARK_API_KEY' in app.config:
+        print 'logging configured'
+        email_handler = PostMarkHandler(api_key=app.config['POSTMARK_API_KEY'])
+        email_handler.setLevel(logging.ERROR)
+        app.logger.addHandler(email_handler)
 
     return app
 

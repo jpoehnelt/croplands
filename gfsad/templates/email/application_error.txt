@@ -1,0 +1,9 @@
+Message type:       {{ levelname }}
+Location:           {{ pathname }}:{{ lineno }}
+Module:             {{ module }}
+Function:           {{ funcName }}
+Time:               {{ asctime }}
+
+Message:
+
+{{ message }}
