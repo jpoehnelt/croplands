@@ -39,7 +39,6 @@ def save_record_state_to_history(result=None, **kwargs):
         result['history'] = []
 
     result['history'].insert(0, to_dict(history))
-    add.delay(1, 2)
 
 
 def mark_ratings_stale(result=None, **kwargs):
