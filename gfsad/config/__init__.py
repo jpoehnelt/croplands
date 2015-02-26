@@ -90,6 +90,7 @@ class Production(Default):
         },
     }
     CELERY_TIMEZONE = 'UTC'
+    Debug=True
 
 
 

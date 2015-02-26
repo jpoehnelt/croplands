@@ -2,4 +2,4 @@
 
 from gfsad import create_app
 
-app = create_app(config='Production', debug=True)
+app = create_app(config='Production')
