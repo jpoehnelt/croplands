@@ -90,7 +90,7 @@ def login():
 
 @auth.route('/forgot', methods=['POST'])
 @required_fields('email')
-@limiter.limit("2 per hour")
+@limiter.limit("5 per hour")
 def forgot_password():
     user = User.from_email(request.json['email'])
     if user is not None:
