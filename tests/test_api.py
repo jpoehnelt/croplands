@@ -257,7 +257,15 @@ class TestApi(TestCase):
             self.assertEqual(delete.status_code, 204)
 
     def test_record_create_with_location(self):
-        pass
+        with self.app.test_client() as c:
+            data = {'lat': 0, 'lon': 0, 'records': []}
+            headers = [('Content-Type', 'application/json')]
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            location = json.loads(post.data)
+
+            data = {'year': 2014, 'month': 1, 'location_id': location['id']}
+            post = c.post('/api/records', headers=headers, data=json.dumps(data))
+            self.assertEqual(post.status_code, 201)
 
     def test_record_create_without_location(self):
         with self.app.test_client() as c:
