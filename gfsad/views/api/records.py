@@ -66,18 +66,19 @@ def update_static_records(result=None, **kwargs):
 
 
 def notify(result=None, **kwargs):
+    pass
     # Get User that Modified Result
-    user = load_user()
-
-    # Build Content
-    subject = "Record #%d Updated" % result['id']
-    message = "This record has been updated by: %s %s" % (user.first, user.last)
-
-    # Create Notification
-    note = Notification(record_id=result['id'], location_id=result['location_id'], subject=subject,
-                        message=message)
-    db.session.add(note)
-    db.session.commit()
+    # user = load_user()
+    #
+    # # Build Content
+    # subject = "Record #%d Updated" % result['id']
+    # message = "This record has been updated by: %s %s" % (user.first, user.last)
+    #
+    # # Create Notification
+    # note = Notification(record_id=result['id'], location_id=result['location_id'], subject=subject,
+    #                     message=message)
+    # db.session.add(note)
+    # db.session.commit()
 
 
 def create(app):
