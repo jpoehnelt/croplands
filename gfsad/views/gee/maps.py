@@ -42,3 +42,46 @@ def get_africa_map():
     print "Map: %s" % ee.data.getTileUrl(product_map, 2, 2, 2)
     return jsonify({'mapId': product_map['mapid'], 'token': product_map['token']})
 
+
+@gee.route('/maps/africa/v2')
+def get_africa_map_v2():
+    """
+    Gets the map id and token for the africa map given specific parameters.
+    """
+    ee.Initialize(ee.ServiceAccountCredentials(current_app.config['GOOGLE_SERVICE_ACCOUNT'],
+                                               key_data=current_app.config['GOOGLE_API_KEY']))
+
+    image = ee.Image('GME/images/10477185495164119823-04069492940774464340')
+
+    with open('gfsad/views/gee/cluster_class_mapping.json') as f:
+        mappings = json.loads(f.read())
+
+    product = ee.Image(0)
+
+    for i, image_code in enumerate(mappings):
+        if 'code' in request.args and i != int(request.args['code']):
+            continue
+        code = ee.Image(i + 1)
+        mask = ee.Image(0)
+        for cluster in image_code['clusters']:
+            if 'cluster_code' in request.args and cluster != int(request.args['cluster_code']):
+                continue
+            mask = mask.Or(image.eq(cluster))
+
+        code = code.multiply(mask)
+        product = product.add(code)
+    if 'background' in request.args and request.args['background'] == 'true':
+        product_map = product.getMapId({'min': 0, 'max': 9,
+                                    'palette': '000000, B2B2B2, 505012, FF00FF, 00FFFF, FFFF00, 007A0B, 00FF00, 0000FF, A020EF'})
+    else:
+        product = product.mask(product)
+
+        product_map = product.getMapId({'min': 1, 'max': 9,
+                                        'palette': 'B2B2B2, 505012, FF00FF, 00FFFF, FFFF00, 007A0B, 00FF00, 0000FF, A020EF'})
+
+    # print "Map: %s" % ee.data.getTileUrl(product_map, 2, 2, 2)
+    return jsonify({'mapId': product_map['mapid'], 'token': product_map['token']})
+
+
+
+
