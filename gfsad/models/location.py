@@ -29,6 +29,11 @@ class Location(db.Model):
     # where
     lat = db.Column(db.Float, nullable=False)
     lon = db.Column(db.Float, nullable=False)
+
+    #offset
+    bearing = db.Column(db.Float) # bearing from lat lon to center of field from lat lon
+    distance = db.Column(db.Integer) # distance along bearing to center of field from lat lon
+
     country = db.Column(db.Integer)
     continent = db.Column(db.String)
     field = db.Column(db.String)
