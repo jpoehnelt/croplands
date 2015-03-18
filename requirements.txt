@@ -31,3 +31,5 @@ requests==2.3.0
 Pillow==2.6.1
 Shapely==1.5.6
 psycopg2
+
+newrelic

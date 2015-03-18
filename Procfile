@@ -1,1 +1,1 @@
-web: gunicorn herokuapp:app
+web: newrelic-admin run-program gunicorn herokuapp:app
