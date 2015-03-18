@@ -2,12 +2,15 @@ from gfsad.exceptions import FieldError, UserError, Unauthorized, InvalidLocatio
 from gfsad.views.json_response import JSONResponse
 from itsdangerous import SignatureExpired, BadSignature
 from flask import render_template, request, jsonify
+from werkzeug.exceptions import BadRequest
+
 
 def init_error_handlers(app):
     @app.errorhandler(FieldError)
     def handle_field_error(e):
         return JSONResponse(status_code=400, description='Missing required data',
                             error='Bad request')
+
     @app.errorhandler(UserError)
     def handle_user_error(e):
         return JSONResponse(**e.__dict__)
@@ -24,7 +27,8 @@ def init_error_handlers(app):
     @app.errorhandler(BadSignature)
     def signature_expired(e):
         print e.__dict__
-        return JSONResponse(status_code=400, error='Bad Signature', description='Your token is not valid.')
+        return JSONResponse(status_code=400, error='Bad Signature',
+                            description='Your token is not valid.')
 
     @app.errorhandler(Unauthorized)
     def unauthorized_handler(e):
@@ -36,6 +40,11 @@ def init_error_handlers(app):
 
     @app.errorhandler(404)
     def not_found(error):
-        response = jsonify({'code': 404,'message': 'No resource.'})
+        response = jsonify({'code': 404, 'message': 'No resource.'})
         response.status_code = 404
         return response
+
+    @app.errorhandler(BadRequest)
+    def bad_request(error):
+        return JSONResponse(status_code=error.code, error='Bad Request',
+                            description=error.description)
