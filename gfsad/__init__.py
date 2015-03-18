@@ -91,10 +91,12 @@ def create_app(config='Testing'):
     api.init_app(app, flask_sqlalchemy_db=db)
 
     # import and register all of the blueprints
+    from gfsad.views.public import public
     from gfsad.views.auth import auth
     from gfsad.views.gee import gee
     from gfsad.views.aws import aws
 
+    app.register_blueprint(public)
     app.register_blueprint(gee)
     app.register_blueprint(aws)
     app.register_blueprint(auth)
