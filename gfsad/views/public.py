@@ -1,15 +1,13 @@
-from flask import current_app, Blueprint, render_template, abort, jsonify, redirect, url_for, make_response
+from flask import current_app, Blueprint, jsonify
 
 # create blueprint to separate scope
 public = Blueprint('views', __name__, template_folder='templates')
 
+
 @public.route('/')
-@public.route('/map')
-@public.route('/app')
-@public.route('/game')
-@public.route('/account/<path:path>')
 def app(path=None):
-    return render_template('app.html')
+    return jsonify({"message": "No content here."}, 200)
+
 
 # debugging sitemap
 @public.route('/sitemap', methods=['GET'])
