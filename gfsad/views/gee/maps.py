@@ -115,6 +115,10 @@ def get_africa_map_v3():
         for i, image_code in enumerate(mappings):
             code = ee.Image(i + 1)
             mask = ee.Image(0)
+            legend.append({
+                "label": image_code['label'],
+                "color": palette[i]
+            })
             for cluster in image_code['clusters']:
                 mask = mask.Or(image.eq(cluster))
 
@@ -138,7 +142,7 @@ def get_africa_map_v3():
                 continue
 
             legend.append({
-                "cluster_code": cluster,
+                "label": cluster,
                 "color": palette[i]
             })
             cluster_code = ee.Image(i + 1)
