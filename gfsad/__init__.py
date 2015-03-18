@@ -36,7 +36,7 @@ class JSONLimiter(Limiter):
 
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 compress = Compress()
-limiter = JSONLimiter(headers_enabled=True, global_limits=["1000 per hour", "200 per minute", "5 per second"])
+limiter = JSONLimiter(headers_enabled=True, global_limits=["1000 per minute"])
 api = APIManager()
 jwt = JWT()
 celery = Celery()
