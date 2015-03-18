@@ -6,7 +6,7 @@ public = Blueprint('views', __name__, template_folder='templates')
 
 @public.route('/')
 def app(path=None):
-    return jsonify({"message": "No content here."}, 200)
+    return jsonify({"message": "No content here."})
 
 
 # debugging sitemap
