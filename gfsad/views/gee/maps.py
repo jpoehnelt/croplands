@@ -112,6 +112,8 @@ def get_africa_map_v3():
 
     # no code and no cluster_code
     if 'code' not in request.args and 'cluster_code' not in request.args:
+        colors = ", ".join(palette[0:len(mappings)])
+
         for i, image_code in enumerate(mappings):
             code = ee.Image(i + 1)
             mask = ee.Image(0)
@@ -127,17 +129,18 @@ def get_africa_map_v3():
 
         if background:
             product_map = product.getMapId({'min': 0, 'max': 9,
-                                            'palette': '000000, B2B2B2, 505012, FF00FF, 00FFFF, FFFF00, 007A0B, 00FF00, 0000FF, A020EF'})
+                                            'palette': '000000, ' + colors})
         else:
             product = product.mask(product)
             product_map = product.getMapId({'min': 1, 'max': 9,
-                                            'palette': 'B2B2B2, 505012, FF00FF, 00FFFF, FFFF00, 007A0B, 00FF00, 0000FF, A020EF'})
+                                            'palette': colors})
 
     # code and no cluster_code
     elif 'code' in request.args:
         clusters = mappings[int(request.args['code'])]['clusters']
         colors = ", ".join(palette[0:len(clusters)])
         for i, cluster in enumerate(clusters):
+            print i + 1
             if 'cluster_code' in request.args and cluster != int(request.args['cluster_code']):
                 continue
 
@@ -148,7 +151,8 @@ def get_africa_map_v3():
             cluster_code = ee.Image(i + 1)
             mask = image.eq(cluster)
             product = product.add(cluster_code.multiply(mask))
-
+        print len(clusters)
+        print colors
         if background:
             product_map = product.getMapId({'min': 0, 'max': len(clusters),
                                             'palette': "000000, " + colors})
