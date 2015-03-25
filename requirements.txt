@@ -16,8 +16,7 @@ Flask-SQLAlchemy==1.0
 Flask-Script==2.0.5
 Flask-JWT==0.2.0
 Flask-Testing
-# waiting on release Flask-Limiter==
--e git://github.com/alisaifee/flask-limiter.git@f2c44a8377ca315f101cfb7f2df2b2ed29f56f79#egg=flask-limiter
+Flask-Limiter=0.7.8
 Flask-Celery-Helper==1.1.0
 Flask-Mail
 
@@ -33,3 +32,4 @@ Shapely==1.5.6
 psycopg2
 
 newrelic
+locustio
