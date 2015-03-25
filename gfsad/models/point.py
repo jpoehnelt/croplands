@@ -12,3 +12,5 @@ class Point(db.Model):
     lon = db.Column(db.Float, nullable=False)
     accuracy = db.Column(db.Float)
     heading = db.Column(db.Float)
+    speed = db.Column(db.Float)
+    altitude = db.Column(db.Float)
