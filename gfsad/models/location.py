@@ -19,6 +19,7 @@ class Location(db.Model):
 
     # relationships
     records = relationship("Record", cascade="all, delete-orphan")
+    points = relationship("Point", cascade="all, delete-orphan")
     timeseries = relationship("TimeSeries", cascade="all, delete-orphan")
     photos = relationship("Photo", cascade="all, delete-orphan")
 
@@ -33,6 +34,7 @@ class Location(db.Model):
     #offset
     bearing = db.Column(db.Float) # bearing from lat lon to center of field from lat lon
     distance = db.Column(db.Integer) # distance along bearing to center of field from lat lon
+    accuracy = db.Column(db.Integer)
 
     country = db.Column(db.Integer)
     continent = db.Column(db.String)
