@@ -12,6 +12,7 @@ class PostMarkHandler(logging.Handler):
         self.api_key = api_key
 
     def emit(self, record):
+        print record
         """
         Emit a record.
 
