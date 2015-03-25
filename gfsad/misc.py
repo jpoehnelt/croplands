@@ -21,7 +21,7 @@ class PostMarkHandler(logging.Handler):
         try:
             import requests
             data = record.__dict__
-
+            data['data'] = data
             body = render_template('email/application_error.txt', **data)
             message = json.dumps({
                 "From": 'info@croplands.org',
