@@ -68,6 +68,7 @@ def build_static_records():
                       record.rating as rating,
                       record.year as year,
                       record.month as month,
+                      record.land_use_type as land_use_type,
                       record.crop_primary as crop_primary,
                       record.crop_secondary as crop_secondary,
                       record.water as water,
@@ -80,8 +81,8 @@ def build_static_records():
 
     result = db.engine.execute(cmd)
     columns = result.keys()
-    records = [[row['lat'], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9],
-                row[10]] for row in result]
+    records = [[row['location_id'], row['lat'], row['lon'], row['id'], row['rating'], row['year'], row['month'], row['land_use_type'], row['crop_primary'], row['crop_secondary'], row['water'],
+                row['intensity']] for row in result]
 
     split_records = split_list(records, NUM_FILES)
 
@@ -92,7 +93,7 @@ def build_static_records():
     # Get bucket
     bucket = s3.get_bucket('gfsad30')
 
-    for i in range(1,NUM_FILES):
+    for i in range(1,NUM_FILES+1):
         if current_app.testing:
             key = 'json/records.test.p%d.json'
         else:
@@ -108,7 +109,7 @@ def build_static_records():
                 'license': LICENSE,
                 'attribution': ATTRIBUTION
             },
-            'objects': split_records[i]
+            'objects': split_records[i - 1]
         }
 
         if i < NUM_FILES - 1:
@@ -122,7 +123,7 @@ def build_static_records():
         k.key = key % i
 
         k.set_metadata('content-type', 'application/javascript')
-        k.set_metadata('cache-control', 'max-age=600')
+        k.set_metadata('cache-control', 'max-age=300')
         k.set_metadata('content-encoding', 'gzip')
 
         with gzip.GzipFile(fileobj=out, mode="w") as outfile:
