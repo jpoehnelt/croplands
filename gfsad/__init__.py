@@ -113,6 +113,9 @@ def create_app(config='Testing'):
     # cors headers and cache
     app.after_request(add_cors_headers)
 
+    from gfsad.utils.log import log
+    app.after_request(log)
+
     from gfsad.auth import load_user
     @limiter.request_filter
     def registered():
@@ -123,7 +126,6 @@ def create_app(config='Testing'):
         return load_user() != "anonymous"
 
     if 'POSTMARK_API_KEY' in app.config:
-        print 'logging configured'
         email_handler = PostMarkHandler(api_key=app.config['POSTMARK_API_KEY'])
         email_handler.setLevel(logging.ERROR)
         app.logger.addHandler(email_handler)
