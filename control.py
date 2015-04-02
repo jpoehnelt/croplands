@@ -3,8 +3,10 @@ from flask.ext.script import Manager
 from celery.bin.celery import main as celery_main
 from gfsad import create_app, db
 
-manager = Manager(create_app)
-manager.add_option('-c', '--config', dest='config', required=True)
+app = create_app('Production')
+migrate = Migrate(app, db)
+manager = Manager(app)
+# manager.add_option('-c', '--config', dest='config', required=True)
 manager.add_command('db', MigrateCommand)
 
 
