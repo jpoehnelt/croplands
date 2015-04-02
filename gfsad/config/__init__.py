@@ -29,6 +29,9 @@ class Default(object):
     AUTH_RESET_TOKEN_EXPIRATION = 300
     AUTH_REQUIRE_CONFIRMATION = False
 
+    CELERY_TIMEZONE = 'UTC'
+    CELERY_ENABLE_UTC = True
+
 
 class Testing(Default):
     ENV = 'TESTING'
