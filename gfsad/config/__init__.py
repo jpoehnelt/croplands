@@ -48,7 +48,6 @@ class Testing(Default):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
 
     # SQLALCHEMY_ECHO = True
-    CELERY_TIMEZONE = 'UTC'
     CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
     CELERY_ALWAYS_EAGER = False
 
@@ -80,7 +79,7 @@ class Production(Default):
     # REDIS
     REDISCLOUD_URL = os.environ.get('REDISCLOUD_URL')
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
-    RATELIMIT_STORAGE_URL = REDISCLOUD_URL
+    RATELIMIT_STORAGE_URL = os.environ.get('REDISCLOUD_URL')
 
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 
@@ -92,7 +91,6 @@ class Production(Default):
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
     }
-    CELERY_TIMEZONE = 'UTC'
 
 
 
