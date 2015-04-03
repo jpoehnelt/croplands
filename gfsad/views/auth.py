@@ -147,7 +147,7 @@ def send_reset_email(link, email):
 
     msg = Message(recipients=email, body=body, html=html,
                   subject='Global Croplands - Password Reset')
-    return send_email(msg)
+    return send_email.delay(msg)
 
 
 def send_confirmation_email(link, email):
