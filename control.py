@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from flask.ext.migrate import Migrate, MigrateCommand
 from flask.ext.script import Manager
 from celery.bin.celery import main as celery_main
@@ -19,7 +20,7 @@ def beat():
 
 @manager.command
 def worker(Q="gfsad-production"):
-    celery_args = ['celery', 'worker', '-l', 'info', '-Q', Q]
+    celery_args = ['celery', 'worker', '-l', 'info', '-Q', Q, '--concurrency', '10']
     with manager.app.app_context():
         return celery_main(celery_args)
 
