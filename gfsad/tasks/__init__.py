@@ -4,18 +4,13 @@ import json
 import requests
 
 
-
-@celery.task
-def add(x,y):
-    print x + y
-
 @celery.task
 def send_email(msg):
     try:
         msg = msg.__dict__
     except AttributeError as e:
         # dict object has no attribute __dict__
-        pass
+        print e
 
     if type(msg['recipients']) is list:
         msg['recipients'] = ",".join(msg['recipients'])
