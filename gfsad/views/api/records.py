@@ -1,7 +1,5 @@
 from gfsad import api
-from gfsad.auth import load_user
 from gfsad.models import Record, RecordHistory, RecordRating, db, Notification
-from gfsad.tasks import add
 from gfsad.tasks.records import build_static_records
 from processors import (
     api_roles,
