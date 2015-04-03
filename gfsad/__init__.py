@@ -25,11 +25,11 @@ class JSONLimiter(Limiter):
             )
             response.headers.add(
                 self.header_mapping[HEADERS.REMAINING],
-                window_stats[1]
+                str(window_stats[1])
             )
             response.headers.add(
                 self.header_mapping[HEADERS.RESET],
-                window_stats[0]
+                str(window_stats[0])
             )
         return response
 

@@ -18,7 +18,7 @@ def init_error_handlers(app):
     @app.errorhandler(429)
     def rate_limit_handler(e):
         return JSONResponse(status_code=429, error='Exceeded Rate Limit',
-                            description='Slow Down! ' + e.description)
+                            description='Slow Down! ' + str(e.description))
 
     @app.errorhandler(SignatureExpired)
     def signature_expired(e):

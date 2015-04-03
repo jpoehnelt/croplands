@@ -131,6 +131,29 @@ class TestAuthViews(TestCase):
             response.json = json.loads(response.data)
             self.assertEqual(response.json['status_code'], 200)
 
+    def test_forgot_rate_limit(self):
+        with self.app.test_client() as c:
+            limiter.enabled = True
+
+            me = {
+                'email': 'jpoehnelt+test@usgs.gov',
+                'password': 'woot1LoveCookies!',
+                'first': 'Justin',
+                'last': 'Poehnelt',
+            }
+            # create user
+            # get /forgot
+            headers = [('Content-Type', 'application/json')]
+            c.post('/auth/register', headers=headers,
+                   data=json.dumps(me))
+            for i in range(10):
+                response = c.post('/auth/forgot', headers=headers,
+                              data=json.dumps({'email': me['email']}))
+                print response.headers
+            response.json = json.loads(response.data)
+            self.assertEqual(response.json['status_code'], 429)
+
+
     def test_forgot_token(self):
         with self.app.test_client() as c:
             # try one that works!
@@ -229,6 +252,12 @@ class TestAuthViews(TestCase):
             response.json = json.loads(response.data)
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.json['status_code'], 400)
+
+            response = c.post('/auth/login', headers=headers,
+                              data=json.dumps({'email': 'asdfasdf', 'password': 'adsfasdfas'}))
+            response.json = json.loads(response.data)
+            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.json['status_code'], 401)
 
     def test_protected_no_token(self):
         with self.app.test_client() as c:
