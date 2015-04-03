@@ -19,7 +19,7 @@ def beat():
 
 
 @manager.command
-def worker(Q="gfsad-production"):
+def worker(Q="gfsad"):
     celery_args = ['celery', 'worker', '-l', 'info', '-Q', Q, '--concurrency', '10']
     with manager.app.app_context():
         return celery_main(celery_args)
