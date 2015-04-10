@@ -2,7 +2,7 @@ from gfsad import api
 from gfsad.models import Location
 from processors import api_roles, add_user_to_posted_data, remove_relations
 from records import save_record_state_to_history
-from gfsad.tasks.records import get_ndvi
+from gfsad.tasks.records import get_ndvi, build_static_records
 
 
 def process_records(result=None, **kwargs):
@@ -16,8 +16,28 @@ def process_records(result=None, **kwargs):
         save_record_state_to_history(record)
 
 
+def merge_same_location_lat_long(data=None, **kwargs):
+    """
+    This preprocessor checks if the location already exists.
+
+    :param data:
+    :param kwargs:
+    :return:
+    """
+    # TODO
+    pass
+
+
+
 def get_time_series(result=None, **kwargs):
     get_ndvi.delay(id=result['id'], lat=result['lat'], lon=result['lon'])
+
+
+def build_static_locations(result=None, **kwargs):
+    """
+    Calls the celery task to rebuild the static locations for the web application.
+    """
+    build_static_records.delay()
 
 
 def create(app):
@@ -32,9 +52,9 @@ def create(app):
                        'DELETE': [api_roles('admin')]
                    },
                    postprocessors={
-                       'POST': [process_records, get_time_series],
-                       'PATCH_SINGLE': [],
-                       'PATCH_MANY': [],
-                       'DELETE': []
+                       'POST': [process_records, get_time_series, build_static_locations],
+                       'PATCH_SINGLE': [build_static_locations],
+                       'PATCH_MANY': [build_static_locations],
+                       'DELETE': [build_static_locations]
                    },
                    results_per_page=10)
