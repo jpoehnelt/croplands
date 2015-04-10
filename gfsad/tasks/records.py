@@ -50,7 +50,7 @@ def sum_ratings_for_record(id):
         pass
 
 
-@celery.task(rate_limit="6/h", time_limit=300)
+@celery.task(rate_limit="15/h", time_limit=300)
 def build_static_records():
     NUM_FILES = 3
 
