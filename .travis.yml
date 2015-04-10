@@ -8,6 +8,8 @@ install:
 services:
   - redis-server
   - rabbitmq
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
 script: coverage run --source=gfsad setup.py test
 after_success: coveralls
 

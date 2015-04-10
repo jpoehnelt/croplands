@@ -45,7 +45,7 @@ class Testing(Default):
     RATELIMIT_STORAGE_URL = 'redis://127.0.0.1:6379'
 
     # SQL
-    SQLALCHEMY_DATABASE_URI = "sqlite://"
+    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:@localhost:5432/test"
 
     # SQLALCHEMY_ECHO = True
     CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
