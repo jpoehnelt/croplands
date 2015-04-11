@@ -328,7 +328,7 @@ class TestApi(TestCase):
             record = json.loads(patch.data)
             self.assertEqual(len(record['history']), 2)
             self.assertAlmostEqual(datetime.datetime.strptime(record['history'][0]['date_edited'],
-                                                              "%Y-%m-%dT%H:%M:%S"),
+                                                              "%Y-%m-%dT%H:%M:%S.%f"),
                                    datetime.datetime.utcnow(), delta=datetime.timedelta(seconds=3))
             for history in record['history']:
                 data = json.loads(history['data'])
