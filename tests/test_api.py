@@ -320,7 +320,7 @@ class TestApi(TestCase):
             record = json.loads(post.data)
             self.assertEqual(len(record['history']), 1)
             self.assertAlmostEqual(datetime.datetime.strptime(record['history'][0]['date_edited'],
-                                                              "%Y-%m-%dT%H:%M:%S"),
+                                                              "%Y-%m-%dT%H:%M:%S.%f"),
                                    datetime.datetime.utcnow(), delta=datetime.timedelta(seconds=3))
 
             patch = c.patch('/api/records/%d' % record['id'], headers=user_headers,
