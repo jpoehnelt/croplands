@@ -7,7 +7,8 @@ class Tile(db.Model):
     __tablename__ = 'tile'
 
     id = db.Column(db.Integer, primary_key=True)
-    feature_id = db.Column(db.String, unique=True, nullable=False)
+    feature_id = db.Column(db.String, nullable=False)
+    zoom = db.Column(db.Integer, nullable=False)
 
     center_lat = db.Column(db.Float, nullable=False)
     center_lon = db.Column(db.Float, nullable=False)

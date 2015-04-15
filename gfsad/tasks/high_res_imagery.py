@@ -46,7 +46,7 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
     """
     # convert lat lon to tile
     x, y = degree_to_tile_number(lat, lon, zoom)
-    print x, y
+
     # build url
     url = _build_dg_url(x, y, zoom, current_app.config['DG_EV_CONNECT_ID'], layer=layer, profile="Accuracy_Profile")
 
@@ -54,8 +54,7 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
     response = requests.get(url, auth=auth)
 
-    if response.status_code != 200:
-        raise Exception
+    assert(response.status_code == 200)
 
     # get image
     f = StringIO.StringIO(response.content)
@@ -83,6 +82,7 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
         'corner_sw_lon': corner_sw_lon,
         'center_lat': (corner_ne_lat + corner_sw_lat)/2,
         'center_lon': (corner_ne_lon + corner_sw_lon)/2,
+        'zoom': zoom,
         'url': "tiles/dg_ev/%d/%d/%d" % (zoom, x, y) + '.JPG'
     }
 
