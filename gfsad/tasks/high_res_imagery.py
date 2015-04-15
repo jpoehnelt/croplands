@@ -66,7 +66,6 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
 
     sample_size = float(soup.find_all("digitalglobe:groundsampledistance")[0].string)
     if sample_size > 1.0:
-        img.show()
         return
 
     corner_ne = soup.find_all("gml:uppercorner")[0].string.split()
@@ -88,11 +87,12 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
         'center_lat': (corner_ne_lat + corner_sw_lat)/2,
         'center_lon': (corner_ne_lon + corner_sw_lon)/2,
         'zoom': zoom,
+        'x': x,
+        'y': y,
         'url': "tiles/dg_ev/%d/%d/%d" % (zoom, x, y) + '.JPG'
     }
 
     # img.show()
-
     # save image to s3
     s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
