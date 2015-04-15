@@ -32,6 +32,9 @@ class Default(object):
     CELERY_TIMEZONE = 'UTC'
     CELERY_ENABLE_UTC = True
 
+    DG_EV_CONNECT_ID = os.environ.get('DG_EV_CONNECT_ID')
+    DG_EV_USERNAME = os.environ.get('DG_EV_USERNAME')
+    DG_EV_PASSWORD = os.environ.get('DG_EV_PASSWORD')
 
 class Testing(Default):
     ENV = 'TESTING'
