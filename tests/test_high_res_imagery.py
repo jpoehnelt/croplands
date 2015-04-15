@@ -30,5 +30,5 @@ class TestHighResImage(unittest.TestCase):
             get_image(lat,lon,18)
 
             tile = Tile.query.first()
-            self.assertAlmostEqual(lat, tile.center_lat, delta=0.0001)
-            self.assertAlmostEqual(lon, tile.center_lon, delta=0.0001)
+            self.assertAlmostEqual(lat, tile.center_lat, delta=0.01)
+            self.assertAlmostEqual(lon, tile.center_lon, delta=0.01)
