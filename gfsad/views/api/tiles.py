@@ -7,4 +7,5 @@ def create(app):
                    app=app,
                    collection_name='tiles',
                    methods=['GET'],
+                   results_per_page=100
     )
