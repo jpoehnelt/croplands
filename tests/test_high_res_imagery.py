@@ -1,7 +1,7 @@
 from gfsad import create_app, db, limiter
 import unittest
 from gfsad.tasks.high_res_imagery import get_image
-from gfsad.models import Tile
+from gfsad.models.tile import Tile
 
 
 class TestHighResImage(unittest.TestCase):
