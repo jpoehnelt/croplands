@@ -130,6 +130,7 @@ def create_app(config='Testing'):
         email_handler.setLevel(logging.ERROR)
         app.logger.addHandler(email_handler)
 
+    import tasks.high_res_imagery
     return app
 
 
