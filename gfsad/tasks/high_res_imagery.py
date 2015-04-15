@@ -54,6 +54,9 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
     response = requests.get(url, auth=auth)
 
+    if response.status_code != 200:
+        raise Exception
+
     # get image
     f = StringIO.StringIO(response.content)
     img = Image.open(f)
