@@ -64,6 +64,11 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
     exif = img._getexif()
     soup = BeautifulSoup(exif[37510])
 
+    sample_size = float(soup.find_all("digitalglobe:groundsampledistance")[0].string)
+    if sample_size > 1.0:
+        img.show()
+        return
+
     corner_ne = soup.find_all("gml:uppercorner")[0].string.split()
     corner_ne_lon, corner_ne_lat = transform(corner_ne[0], corner_ne[1])
     corner_sw = soup.find_all("gml:lowercorner")[0].string.split()
