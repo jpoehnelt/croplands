@@ -99,7 +99,7 @@ def get_image(lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
     s3_file.key = image_data['url']
     s3_file.set_metadata('cache-control', cache_control)
     s3_file.set_metadata('content-type', content_type)
-    s3_file.set_contents_from_file(f, rewind=True)
+    s3_file.set_contents_from_string(f.getvalue())
     s3_file.make_public()
 
     # save information to database
