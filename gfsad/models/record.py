@@ -2,6 +2,8 @@ from gfsad.models import db
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
 import random
+from sqlalchemy.dialects import postgresql
+
 
 class Record(db.Model):
     """
@@ -43,6 +45,9 @@ class Record(db.Model):
     # calculated rating that is periodically updated
     rating = db.Column(db.Integer, default=0)
 
+    ndvi_modis = db.Column(postgresql.ARRAY(db.Integer),
+                           default=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0])
     # sub models
     history = relationship("RecordHistory", cascade="all, delete-orphan")
     ratings = relationship("RecordRating", cascade="all, delete-orphan")
