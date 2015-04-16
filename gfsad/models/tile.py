@@ -1,9 +1,9 @@
 from gfsad.models import db
 from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 
 class Tile(db.Model):
-
     __tablename__ = 'tile'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -28,4 +28,30 @@ class Tile(db.Model):
     date_acquired_earliest = db.Column(db.DateTime)
     date_acquired_latest = db.Column(db.DateTime)
 
+    classifications = relationship("TileClassification", cascade="all, delete-orphan")
 
+    classifications_count = db.Column(db.Integer)
+    classifications_majority_agreement = db.Column(db.Integer)
+    classifications_majority_class = db.Column(db.Integer)
+
+
+
+class TileClassification(db.Model):
+    __tablename__ = 'tile_classification'
+
+    id = db.Column(db.Integer, primary_key=True)
+    classification = db.Column(db.Integer, nullable=False)
+    date_classified = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    tile = db.Column(db.Integer, ForeignKey('tile.id'))
+    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    session_id = db.Column(db.String)
+
+
+class TileUser(db.Model):
+    __tablename__ = 'tile_user'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date_captured = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    ip = db.Column(db.String)
+    session_id = db.Column(db.String)
+    level = db.Column(db.String)
