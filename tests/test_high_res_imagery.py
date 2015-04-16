@@ -26,18 +26,14 @@ class TestHighResImage(unittest.TestCase):
 
     def test_get_image(self):
         with self.app.app_context():
-            with self.app.test_client() as c:
-                headers = [('Content-Type', 'application/json')]
+            lat= 35.198136597203195
+            lon = -111.64765298366547
 
-                data = {'lat': 35.198136597203195, 'lon': -111.64765298366547}
-                post = c.post('/api/locations', headers=headers, data=json.dumps(data))
-                response = json.loads(post.data)
+            get_image(lat, lon, 18)
 
-                get_image(response['id'], response['lat'], response['lon'], 18)
-
-                image = Image.query.first()
-                self.assertAlmostEqual(response['lat'], image.lat, delta=0.001)
-                self.assertAlmostEqual(response['lon'], image.lon, delta=0.001)
+            image = Image.query.first()
+            self.assertAlmostEqual(lat, image.lat, delta=0.001)
+            self.assertAlmostEqual(lon, image.lon, delta=0.001)
 
 
     def test_post_classification(self):
@@ -47,10 +43,9 @@ class TestHighResImage(unittest.TestCase):
                 data = {'lat': 35.198136597203195, 'lon': -111.64765298366547}
 
                 post = c.post('/api/locations', headers=headers, data=json.dumps(data))
-                print post.data
                 response = json.loads(post.data)
-                print response
-                get_image(response['id'], response['lat'], response['lon'], 18)
+
+                get_image(response['lat'], response['lon'], 18, location_id=response['id'])
 
                 headers = [('Content-Type', 'application/json')]
                 response = c.get('/api/images', headers=headers)

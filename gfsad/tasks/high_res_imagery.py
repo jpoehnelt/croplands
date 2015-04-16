@@ -8,7 +8,7 @@ import boto
 from boto.s3.key import Key
 from bs4 import BeautifulSoup
 from pyproj import Proj, transform as _transform
-from gfsad.models import Image, db
+from gfsad.models import Image, db, Location
 import datetime
 from gfsad.utils.geo import distance
 import uuid
@@ -38,11 +38,12 @@ def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
 
 
 @celery.task(rate_limit="300/m")
-def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileService"):
+def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileService"):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
     :param lat:
     :param lon:
     :param zoom:
+    :param location_id:
     :param layer:
     :return:
     """
@@ -56,7 +57,7 @@ def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileServic
     # get tile
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
     response = requests.get(url, auth=auth)
-
+    print response.content
     assert (response.status_code == 200)
 
     # get image
@@ -75,6 +76,13 @@ def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileServic
     corner_ne_lon, corner_ne_lat = transform(corner_ne[0], corner_ne[1])
     corner_sw = soup.find_all("gml:lowercorner")[0].string.split()
     corner_sw_lon, corner_sw_lat = transform(corner_sw[0], corner_sw[1])
+
+    if location_id is None:
+        # create location if it does not exist
+        location = Location(lat=lat, lon=lon, source='random-generator')
+        db.session.add(location)
+        db.session.commit()
+        location_id=location.id
 
     image_data = {
         'location_id': location_id,
@@ -120,6 +128,9 @@ def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileServic
               fill=(255, 255, 255, 128))
 
     draw.text((3, 242), image_data['copyright'] + ',  Croplands.org', font=fnt,
+              fill=(255, 255, 255, 128))
+
+    draw.text((3, 232), 'Croplands.org', font=fnt,
               fill=(255, 255, 255, 128))
 
     # img.show()
