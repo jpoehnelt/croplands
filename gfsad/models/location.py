@@ -45,9 +45,9 @@ class Location(db.Model):
     date_edited = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     # use
-    use_verification = db.Column(db.Boolean, default=False)
-    use_verification_locked = db.Column(db.Boolean, default=False)
-    use_valid = db.Column(db.Boolean, default=False)
+    use_verification = db.Column(db.Boolean, default=False, index=True)
+    use_verification_locked = db.Column(db.Boolean, default=False, index=True)
+    use_valid = db.Column(db.Boolean, default=False, index=True)
     use_deleted = db.Column(db.Boolean, default=False)
 
     def __init__(self, *args, **kwargs):
