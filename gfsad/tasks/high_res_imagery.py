@@ -11,7 +11,7 @@ from pyproj import Proj, transform as _transform
 from gfsad.models import Image, db
 import datetime
 from gfsad.utils.geo import distance
-
+import uuid
 
 def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
                   layer="DigitalGlobe:ImageryTileService",
@@ -92,7 +92,7 @@ def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileServic
         'corner_sw_lon': corner_sw_lon,
         'lat': (corner_ne_lat + corner_sw_lat) / 2,
         'lon': (corner_ne_lon + corner_sw_lon) / 2,
-        'url': "tiles/dg_ev/consumer_profile/2015-04-16/%d/%d/%d" % (zoom, x, y) + '.JPG'
+        'url': "images/digital_globe/consumer_profile/%s" % uuid.uuid4() + '.JPG'
     }
     # check if location is on edge of tile and reject if it is...
     # at 18 zoom tiles are 126*126 meters
@@ -121,7 +121,7 @@ def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileServic
     draw.text((3, 242), image_data['copyright'] + ',  Croplands.org', font=fnt,
               fill=(255, 255, 255, 128))
 
-    img.show()
+    # img.show()
     out = StringIO.StringIO()
     img.save(out, format='JPEG')
 
