@@ -31,6 +31,7 @@ def check_session_id(data=None, **kwargs):
     :return:
     """
     if 'uid' not in session or data['session_id'] != session['uid']:
+        print data['session_id'], session['uid']
         raise BadRequest()
 
 
