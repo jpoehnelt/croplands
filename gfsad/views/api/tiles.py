@@ -7,7 +7,7 @@ from werkzeug.exceptions import BadRequest
 
 
 def update_tile_classification_statistics(result=None, **kwarg):
-    compute_tile_classification_statistics(result['tile'])
+    compute_tile_classification_statistics.delay(result['tile'])
 
 
 def insert_session(result=None, **kwargs):
