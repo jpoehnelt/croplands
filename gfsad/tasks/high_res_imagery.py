@@ -111,7 +111,8 @@ def get_image(location_id, lat, lon, zoom, layer="DigitalGlobe:ImageryTileServic
                   (pixel_x + 15 * ratio, pixel_y - 15 * ratio),
                   (pixel_x + 15 * ratio, pixel_y + 15 * ratio),
                   (pixel_x - 15 * ratio, pixel_y + 15 * ratio)], fill=None, outline=128)
-    fnt = ImageFont.truetype("OpenSans-Regular.ttf", 10)
+
+    fnt = ImageFont.load_default()
 
     draw.text((3, 0),
               image_data['image_type'] + ' - ' + image_data['date_acquired'].strftime("%Y-%m-%d"),
