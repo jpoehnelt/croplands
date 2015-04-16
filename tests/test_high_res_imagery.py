@@ -1,7 +1,7 @@
 from gfsad import create_app, db, limiter
 import unittest
 from gfsad.tasks.high_res_imagery import get_image
-from gfsad.models.tile import Tile
+from gfsad.models import Image
 import json
 
 
@@ -18,7 +18,7 @@ class TestHighResImage(unittest.TestCase):
         with self.app.app_context():
             db.session.remove()
             db.drop_all()
-            
+
     @classmethod
     def setUpClass(cls):
         super(TestHighResImage, cls).setUpClass()
@@ -26,32 +26,45 @@ class TestHighResImage(unittest.TestCase):
 
     def test_get_image(self):
         with self.app.app_context():
-            lat = 35.21506432459321
-            lon = -111.63386642932892
-            get_image(lat,lon,18)
+            with self.app.test_client() as c:
+                headers = [('Content-Type', 'application/json')]
 
-            tile = Tile.query.first()
-            self.assertAlmostEqual(lat, tile.center_lat, delta=0.01)
-            self.assertAlmostEqual(lon, tile.center_lon, delta=0.01)
+                data = {'lat': 35.198136597203195, 'lon': -111.64765298366547}
+                post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+                response = json.loads(post.data)
+
+                get_image(response['id'], response['lat'], response['lon'], 18)
+
+                image = Image.query.first()
+                self.assertAlmostEqual(response['lat'], image.lat, delta=0.001)
+                self.assertAlmostEqual(response['lon'], image.lon, delta=0.001)
+
 
     def test_post_classification(self):
         with self.app.app_context():
             with self.app.test_client() as c:
-                # create image
-                lat = 35.21506432459321
-                lon = -111.63386642932892
-                get_image(lat,lon,18)
+                headers = [('Content-Type', 'application/json')]
+                data = {'lat': 35.198136597203195, 'lon': -111.64765298366547}
+
+                post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+                print post.data
+                response = json.loads(post.data)
+                print response
+                get_image(response['id'], response['lat'], response['lon'], 18)
 
                 headers = [('Content-Type', 'application/json')]
-                response = c.get('/api/tiles', headers=headers)
+                response = c.get('/api/images', headers=headers)
 
-                tile_id = json.loads(response.data)['objects'][0]['id']
+                image_id = json.loads(response.data)['objects'][0]['id']
                 data = {
-                    "tile": tile_id,
+                    "image": image_id,
                     "classification": 3
                 }
 
-                response = c.post('/api/tile_classifications', headers=headers, data=json.dumps(data))
+                response = c.post('/api/image_classifications', headers=headers,
+                                  data=json.dumps(data))
+
+                print response.data
                 self.assertEqual(response.status_code, 201)
 
 

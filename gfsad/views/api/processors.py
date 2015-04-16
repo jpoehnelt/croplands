@@ -1,5 +1,5 @@
 from gfsad.exceptions import Unauthorized
-from gfsad.utils.s3 import upload_photo
+from gfsad.utils.s3 import upload_image
 from gfsad.tasks.records import get_ndvi
 from gfsad.auth import allowed_roles, verify_role, load_user
 
@@ -10,10 +10,6 @@ def api_roles(role):
             raise Unauthorized()
 
     return wrapper
-
-
-def check_for_photo(data=None, **kwargs):
-    pass
 
 
 def after_post_record():
@@ -39,9 +35,9 @@ def add_user_to_posted_data(data=None, **kwargs):
         for record in data['records']:
             record['user_id'] = user.id
 
-    if 'photos' in data:
-        for photo in data['photos']:
-            photo['user_id'] = user.id
+    if 'images' in data:
+        for image in data['images']:
+            image['user_id'] = user.id
 
 
 def remove_relations(data=None, **kwargs):

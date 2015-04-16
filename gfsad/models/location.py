@@ -21,7 +21,7 @@ class Location(db.Model):
     records = relationship("Record", cascade="all, delete-orphan")
     points = relationship("Point", cascade="all, delete-orphan")
     timeseries = relationship("TimeSeries", cascade="all, delete-orphan")
-    photos = relationship("Photo", cascade="all, delete-orphan")
+    images = relationship("Image", cascade="all, delete-orphan")
 
     # who
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
@@ -50,15 +50,58 @@ class Location(db.Model):
     use_deleted = db.Column(db.Boolean, default=False)
 
 
-class Photo(db.Model):
-    __tablename__ = 'photo'
+class Image(db.Model):
+    __tablename__ = 'image'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
 
     location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
-    url = db.Column(db.String, nullable=False)
-    date_taken = db.Column(db.DateTime, nullable=False)
-    comments = db.Column(db.String)
-    date_uploaded = db.Column(db.DateTime, default=db.func.now())
-    flagged = db.Column(db.Integer, default=0)
     source = db.Column(db.String)
+    comments = db.Column(db.String)
+
+    bearing = db.Column(db.Integer)
+
+    lat = db.Column(db.Float, nullable=False, index=True)
+    lon = db.Column(db.Float, nullable=False, index=True)
+
+    corner_ne_lat = db.Column(db.Float)
+    corner_ne_lon = db.Column(db.Float)
+    corner_sw_lat = db.Column(db.Float)
+    corner_sw_lon = db.Column(db.Float)
+
+    url = db.Column(db.String, unique=True, nullable=False)
+    copyright = db.Column(db.String)
+    image_type = db.Column(db.String, index=True)
+
+    date_modified = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    date_uploaded = db.Column(db.DateTime, default=db.func.now())
+    date_acquired = db.Column(db.DateTime, nullable=False, index=True)
+    date_acquired_earliest = db.Column(db.DateTime)
+    date_acquired_latest = db.Column(db.DateTime)
+
+    classifications = relationship("ImageClassification", cascade="all, delete-orphan")
+    classifications_count = db.Column(db.Integer, index=True, default=0)
+    classifications_majority_agreement = db.Column(db.Integer, index=True, default=0)
+    classifications_majority_class = db.Column(db.Integer, index=True, default=0)
+
+    flagged = db.Column(db.Integer, default=0)
+
+
+class ImageClassification(db.Model):
+    __tablename__ = 'image_classification'
+
+    id = db.Column(db.Integer, primary_key=True)
+    classification = db.Column(db.Integer, nullable=False)
+    date_classified = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    image = db.Column(db.Integer, ForeignKey('image.id'))
+    user = db.Column(db.Integer, ForeignKey('user.id'))
+    ip = db.Column(db.String, nullable=False)
+
+
+class ImageClassificationProvider(db.Model):
+    __tablename__ = 'image_classification_user'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date_captured = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    ip = db.Column(db.String, nullable=False)
+    level = db.Column(db.String) # self declared expertise level
