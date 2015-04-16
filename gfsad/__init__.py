@@ -131,6 +131,8 @@ def create_app(config='Testing'):
         app.logger.addHandler(email_handler)
 
     import tasks.high_res_imagery
+    import tasks.classifications
+
     return app
 
 
