@@ -1,7 +1,7 @@
 from gfsad.models import db
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
-
+import random
 
 class Location(db.Model):
     """
@@ -46,8 +46,19 @@ class Location(db.Model):
 
     # use
     use_verification = db.Column(db.Boolean, default=False)
+    use_verification_locked = db.Column(db.Boolean, default=False)
     use_valid = db.Column(db.Boolean, default=False)
     use_deleted = db.Column(db.Boolean, default=False)
+
+    def __init__(self, *args, **kwargs):
+        super(Location, self).__init__(*args, **kwargs)
+
+        if 'use_verification' not in kwargs and 'use_verification_locked' not in kwargs:
+            self.use_verification = random.choice([True, False])
+            if self.use_verification:
+                self.use_verification_locked = random.choice([True, False])
+
+
 
 
 class Image(db.Model):
