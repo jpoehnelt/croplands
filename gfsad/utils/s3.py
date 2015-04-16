@@ -7,12 +7,12 @@ from flask import current_app
 import uuid
 
 
-def upload_photo(encoded_photo, filename='img/' + str(uuid.uuid4()) + '.JPG', public=True,
+def upload_image(encoded_image, filename='img/' + str(uuid.uuid4()) + '.JPG', public=True,
                  cache_control='max-age=2000000',
                  content_type='image/jpeg'):
     """
     Uploads a base64 encoded image to amazon s3 bucket.
-    :param encoded_photo: base64 encoded image
+    :param encoded_image: base64 encoded image
     :param filename: s3 filename
     :param public: boolean if public
     :param cache_control: http cache-control value
@@ -23,7 +23,7 @@ def upload_photo(encoded_photo, filename='img/' + str(uuid.uuid4()) + '.JPG', pu
     f = cStringIO.StringIO()
 
     # manipulate with pillow
-    img = Image.open(cStringIO.StringIO(base64.b64decode(encoded_photo)))
+    img = Image.open(cStringIO.StringIO(base64.b64decode(encoded_image)))
     img.convert("RGB")
     img.thumbnail((600, 600))
     img.save(f, 'JPEG', quality=60)
@@ -48,7 +48,7 @@ def upload_photo(encoded_photo, filename='img/' + str(uuid.uuid4()) + '.JPG', pu
     return s3_file
 
 
-def delete_photo(key):
+def delete_image(key):
     """
     Deletes a key (file) from Amazon S3 Bucket
     :param key:
