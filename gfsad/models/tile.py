@@ -1,5 +1,5 @@
 from gfsad.models import db
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 
@@ -35,16 +35,18 @@ class Tile(db.Model):
     classifications_majority_class = db.Column(db.Integer)
 
 
-
 class TileClassification(db.Model):
     __tablename__ = 'tile_classification'
+    __table_args__ = (
+        UniqueConstraint('tile', 'session_id', name='one_classification_per_tile'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     classification = db.Column(db.Integer, nullable=False)
     date_classified = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     tile = db.Column(db.Integer, ForeignKey('tile.id'))
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
-    session_id = db.Column(db.String)
+    session_id = db.Column(db.String, nullable=False)
 
 
 class TileUser(db.Model):
@@ -52,6 +54,5 @@ class TileUser(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date_captured = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
-    ip = db.Column(db.String)
-    session_id = db.Column(db.String)
-    level = db.Column(db.String)
+    session_id = db.Column(db.String, nullable=False)
+    level = db.Column(db.String) # self declared expertise level

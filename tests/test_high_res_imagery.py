@@ -35,7 +35,7 @@ class TestHighResImage(unittest.TestCase):
 
     def test_post_classification(self):
         with self.app.app_context():
-            with self.app.test_client() as c:
+            with self.app.test_client(use_cookies=False) as c:
                 # create image
                 lat = 35.21506432459321
                 lon = -111.63386642932892
