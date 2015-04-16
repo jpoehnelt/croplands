@@ -10,7 +10,7 @@ def update_tile_classification_statistics(result=None, **kwarg):
     compute_tile_classification_statistics.delay(result['tile'])
 
 
-def insert_session(result=None, **kwargs):
+def insert_session(data=None, **kwargs):
     """
     Creates a session unique identifier for later capturing information on the user
     accross classifications.
@@ -18,21 +18,8 @@ def insert_session(result=None, **kwargs):
     :param kwargs:
     :return:
     """
-    if 'uid' not in session:
-        session['uid'] = str(uuid.uuid4())
-    result['session_id'] = session['uid']
 
-
-def check_session_id(data=None, **kwargs):
-    """
-    Checks session id.
-    :param data:
-    :param kwargs:
-    :return:
-    """
-    if 'uid' not in session or data['session_id'] != session['uid']:
-        print data['session_id'], session['uid']
-        raise BadRequest()
+    data['session_id'] = request.remote_addr if request.remote_addr is not None else 1
 
 
 
@@ -41,9 +28,6 @@ def create(app):
                    app=app,
                    collection_name='tiles',
                    methods=['GET'],
-                   postprocessors={
-                       'GET_MANY': [insert_session]
-                   },
                    results_per_page=100
     )
 
@@ -52,7 +36,7 @@ def create(app):
                    collection_name='tile_classifications',
                    methods=['POST'],
                    preprocessors={
-                       'POST': [check_session_id]
+                       'POST': [insert_session]
                    },
                    postprocessors={
                        'POST': [update_tile_classification_statistics]

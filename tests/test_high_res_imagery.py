@@ -4,6 +4,7 @@ from gfsad.tasks.high_res_imagery import get_image
 from gfsad.models.tile import Tile
 import json
 
+
 class TestHighResImage(unittest.TestCase):
     app = None
 
@@ -45,21 +46,13 @@ class TestHighResImage(unittest.TestCase):
                 response = c.get('/api/tiles', headers=headers)
 
                 tile_id = json.loads(response.data)['objects'][0]['id']
-                session_id = json.loads(response.data)['session_id']
                 data = {
                     "tile": tile_id,
-                    "classification": 3,
-                    "session_id": session_id
+                    "classification": 3
                 }
 
                 response = c.post('/api/tile_classifications', headers=headers, data=json.dumps(data))
                 self.assertEqual(response.status_code, 201)
 
-
-                response = c.get('/api/tiles/%d' % tile_id, headers=headers)
-                tile = json.loads(response.data)
-                self.assertEqual(tile['classifications_count'], 1)
-                self.assertEqual(tile['classifications_majority_class'], 3)
-                self.assertEqual(tile['classifications_majority_agreement'], 100)
 
 
