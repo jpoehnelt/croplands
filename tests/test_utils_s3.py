@@ -1,9 +1,6 @@
 from gfsad import create_app, db, limiter
-from gfsad.utils.s3 import upload_photo, delete_photo
 import unittest
-import base64
-import requests
-import os
+
 
 class TestUtilsS3(unittest.TestCase):
     app = None
@@ -24,17 +21,17 @@ class TestUtilsS3(unittest.TestCase):
         super(TestUtilsS3, cls).setUpClass()
         cls.app = create_app('Testing')
 
-    # def test_photo_upload_to_s3_from_base64(self):
+    # def test_image_upload_to_s3_from_base64(self):
     #     # TODO create image dynamically with pillow
     #     with self.app.app_context():
     #         with open('tests/test.JPG', "rb") as img:
     #             img_str = base64.b64encode(img.read())
-    #         f = upload_photo(img_str)
+    #         f = upload_image(img_str)
     #         url = f.generate_url(10)
     #         get = requests.get(url.split('?')[0])
     #         self.assertEqual(get.status_code, 200)
     #
     #         # cleanup
-    #         delete_photo(f.key)
+    #         delete_image(f.key)
     #         get = requests.get(url.split('?')[0])
     #         self.assertEqual(get.status_code, 404)
