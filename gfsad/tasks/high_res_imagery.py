@@ -136,7 +136,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
               font=fnt,
               fill=(255, 255, 255, 128))
 
-    draw.text((3, 232), str(image_data['copyright']), font=fnt, fill=(255, 255, 255, 128))
+    draw.text((3, 242), str(image_data['copyright']), font=fnt, fill=(255, 255, 255, 128))
     draw.text((3, 232), 'Croplands.org', font=fnt, fill=(255, 255, 255, 128))
 
     # img.show()
