@@ -31,7 +31,7 @@ def compute_image_classification_statistics(image_id):
     db.session.commit()
 
 
-@celery.task(rate_limit="1/h")
+@celery.task(rate_limit="2/h")
 def build_classifications_result():
     LICENSE = """This data is made available under the Open Database License:
     http://opendatacommons.org/licenses/odbl/1.0/. Any rights in individual
@@ -99,7 +99,7 @@ def build_classifications_result():
     k.key = key
 
     k.set_metadata('content-type', 'application/javascript')
-    k.set_metadata('cache-control', 'max-age=300')
+    k.set_metadata('cache-control', 'max-age=3000')
     k.set_metadata('content-encoding', 'gzip')
 
     with gzip.GzipFile(fileobj=out, mode="w") as outfile:
