@@ -13,6 +13,7 @@ import datetime
 from gfsad.utils.geo import distance
 import uuid
 
+
 def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
                   layer="DigitalGlobe:ImageryTileService",
                   profile="Consumer_Profile"):
@@ -38,7 +39,7 @@ def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
 
 
 @celery.task(rate_limit="1000/m")
-def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileService"):
+def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileService"):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
     :param lat:
     :param lon:
@@ -76,6 +77,7 @@ def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileSe
 
     sample_size = float(soup.find_all("digitalglobe:groundsampledistance")[0].string)
     if sample_size > 1.0:
+        print "Too low of resolution... exiting."
         return
 
     corner_ne = soup.find_all("gml:uppercorner")[0].string.split()
@@ -84,7 +86,7 @@ def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileSe
     corner_sw_lon, corner_sw_lat = transform(corner_sw[0], corner_sw[1])
 
     if location_id is None:
-        # create location if it does not exist
+    # create location if it does not exist
         location = Location(lat=lat, lon=lon, source='random-generator')
         db.session.add(location)
         db.session.commit()
@@ -111,6 +113,7 @@ def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileSe
     # check if location is on edge of tile and reject if it is...
     # at 18 zoom tiles are 126*126 meters
     if distance(image_data['lat'], image_data['lon'], lat, lon) > 50:
+        print "On edge of tile... exiting."
         return
 
     # draw box at center of lat/lon with 30 meter sides
@@ -133,7 +136,7 @@ def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileSe
               font=fnt,
               fill=(255, 255, 255, 128))
 
-    draw.text((3, 242), image_data['copyright'] + ',  Croplands.org', font=fnt,
+    draw.text((3, 242), image_data['copyright'], font=fnt,
               fill=(255, 255, 255, 128))
 
     draw.text((3, 232), 'Croplands.org', font=fnt,
@@ -142,7 +145,7 @@ def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileSe
     # img.show()
     out = StringIO.StringIO()
     img.save(out, format='JPEG')
-
+    img.show()
     # save image to s3
     s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
