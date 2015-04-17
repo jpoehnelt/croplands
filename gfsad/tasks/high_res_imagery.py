@@ -12,7 +12,8 @@ from gfsad.models import Image, db, Location
 import datetime
 from gfsad.utils.geo import distance
 import uuid
-
+import gzip
+import json
 
 def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
                   layer="DigitalGlobe:ImageryTileService",
@@ -86,11 +87,11 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     corner_sw_lon, corner_sw_lat = transform(corner_sw[0], corner_sw[1])
 
     if location_id is None:
-    # create location if it does not exist
+        # create location if it does not exist
         location = Location(lat=lat, lon=lon, source='random-generator')
         db.session.add(location)
         db.session.commit()
-        location_id=location.id
+        location_id = location.id
 
     image_data = {
         'location_id': location_id,
@@ -142,7 +143,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     # img.show()
     out = StringIO.StringIO()
     img.save(out, format='JPEG')
-    img.show()
+    # img.show()
     # save image to s3
     s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
@@ -176,3 +177,4 @@ def transform(x, y, source_projection='epsg:3857', target_projection='epsg:4326'
     :return:
     """
     return _transform(Proj(init=source_projection), Proj(init=target_projection), x, y)
+

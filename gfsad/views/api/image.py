@@ -5,11 +5,13 @@ from gfsad.utils.s3 import upload_image
 from processors import api_roles, add_user_to_posted_data
 import uuid
 from flask import request
-from gfsad.tasks.classifications import compute_image_classification_statistics
+from gfsad.tasks.classifications import compute_image_classification_statistics, \
+    build_classifications_result
 
 
 def update_image_classification_statistics(result=None, **kwarg):
     compute_image_classification_statistics.delay(result['image'])
+    build_classifications_result.delay()
 
 
 def insert_ip(data=None, **kwargs):
