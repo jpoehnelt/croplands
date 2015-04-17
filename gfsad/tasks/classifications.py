@@ -40,7 +40,15 @@ def build_classifications_result():
     http://opendatacommons.org/licenses/dbcl/1.0/"""
 
     ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, http://www.croplands.org'
-
+    classes = [
+            {'id': 0, 'label': 'Unknown', 'description': 'Not cropland is...'},
+            {'id': 1, 'label': 'Cropland', 'description': 'Cropland is...'},
+            {'id': 2, 'label': 'Forest', 'description': 'Forest is ...'},
+            {'id': 3, 'label': 'Grassland', 'description': 'Desert is ...'},
+            {'id': 4, 'label': 'Desert', 'description': 'Desert is ...'},
+            {'id': 5, 'label': 'Urban/Builtup', 'description': 'Urban is ...'},
+            {'id': 6, 'label': 'Shrub', 'description': 'Shrub is ...'}
+        ]
     cmd = """
           SELECT
           lat,
@@ -63,10 +71,10 @@ def build_classifications_result():
             row['lat'], row['lon'],
             row['classifications_count'],
             row['classifications_majority_class'],
-            row['classifications_majority_agreement'], 
-            row['date_acquired'].isoformat(),
-            row['date_acquired_earliest'].isoformat(),
-            row['date_acquired_latest'].isoformat()
+            row['classifications_majority_agreement'],
+            row['date_acquired'].strftime("%Y-%m-%d"),
+            row['date_acquired_earliest'].strftime("%Y-%m-%d"),
+            row['date_acquired_latest'].strftime("%Y-%m-%d"),
         ] for row in result
     ]
 
@@ -90,6 +98,7 @@ def build_classifications_result():
         'meta': {
             'created': datetime.datetime.utcnow().isoformat(),
             'columns': columns,
+            'class_mapping': [c['label'] for c in classes],
             'license': LICENSE,
             'attribution': ATTRIBUTION
         },
