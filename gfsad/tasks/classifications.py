@@ -61,7 +61,7 @@ def build_classifications_result():
         [
             row['lat'], row['lon'], row['classifications_count'], row['classifications_majority_class'],
             row['classifications_majority_agreement'], row['date_acquired_earliest'],
-            row['date_acquired_latests']
+            row['date_acquired_latest']
         ] for row in result
     ]
 
