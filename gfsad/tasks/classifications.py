@@ -31,7 +31,7 @@ def compute_image_classification_statistics(image_id):
     db.session.commit()
 
 
-@celery.task(rate_limit="2/h")
+@celery.task(rate_limit="6/h")
 def build_classifications_result():
     LICENSE = """This data is made available under the Open Database License:
     http://opendatacommons.org/licenses/odbl/1.0/. Any rights in individual
