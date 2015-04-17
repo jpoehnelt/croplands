@@ -8,6 +8,7 @@ import datetime
 import gzip
 import json
 
+
 @celery.task
 def compute_image_classification_statistics(image_id):
     image = Image.query.get(image_id)
@@ -59,9 +60,13 @@ def build_classifications_result():
     columns = result.keys()
     records = [
         [
-            row['lat'], row['lon'], row['classifications_count'], row['classifications_majority_class'],
-            row['classifications_majority_agreement'], row['date_acquired_earliest'],
-            row['date_acquired_latest']
+            row['lat'], row['lon'],
+            row['classifications_count'],
+            row['classifications_majority_class'],
+            row['classifications_majority_agreement'], 
+            row['date_acquired'].isoformat(),
+            row['date_acquired_earliest'].isoformat(),
+            row['date_acquired_latest'].isoformat()
         ] for row in result
     ]
 
