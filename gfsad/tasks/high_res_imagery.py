@@ -37,7 +37,7 @@ def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
     return url
 
 
-@celery.task(rate_limit="300/m")
+@celery.task(rate_limit="1000/m")
 def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileService"):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
     :param lat:
@@ -52,21 +52,27 @@ def get_image(lat, lon, zoom, location_id=None,layer="DigitalGlobe:ImageryTileSe
 
     # build url
     url = _build_dg_url(x, y, zoom, current_app.config['DG_EV_CONNECT_ID'],
-                        layer="DigitalGlobe:NGAOtherProducts", profile="Consumer_Profile")
+                        profile="Consumer_Profile")
 
     # get tile
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
     response = requests.get(url, auth=auth)
-    print response.content
     assert (response.status_code == 200)
+
+    if int(response.headers['content-length']) < 1000:
+        print "Blank Tile... Exiting."
+        return
 
     # get image
     f = StringIO.StringIO(response.content)
     img = Img.open(f)
 
     # get exif data
-    exif = img._getexif()
-    soup = BeautifulSoup(exif[37510])
+    try:
+        exif = img._getexif()
+        soup = BeautifulSoup(exif[37510])
+    except:
+        return
 
     sample_size = float(soup.find_all("digitalglobe:groundsampledistance")[0].string)
     if sample_size > 1.0:
