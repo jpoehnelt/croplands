@@ -89,9 +89,9 @@ def build_classifications_result():
     bucket = s3.get_bucket('gfsad30')
 
     if current_app.testing:
-        key = 'json/classifications.test.json'
+        key = 'test/json/classifications.test.json'
     else:
-        key = 'json/classifications.json'
+        key = 'public/json/classifications.json'
 
     content = {
         'num_results': len(records),
