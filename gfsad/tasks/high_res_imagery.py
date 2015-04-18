@@ -10,10 +10,13 @@ from bs4 import BeautifulSoup
 from pyproj import Proj, transform as _transform
 from gfsad.models import Image, db, Location
 import datetime
-from gfsad.utils.geo import distance
+from gfsad.utils.geo import distance, decode_google_polyline, \
+    calculate_plane_perpendicular_to_travel, get_destination
 import uuid
 import gzip
 import json
+import random
+
 
 def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
                   layer="DigitalGlobe:ImageryTileService",
@@ -178,3 +181,109 @@ def transform(x, y, source_projection='epsg:3857', target_projection='epsg:4326'
     """
     return _transform(Proj(init=source_projection), Proj(init=target_projection), x, y)
 
+
+@celery.task(rate_limit="1/s")
+def get_google_street_view_image(lat, lon, location=None):
+    url = 'https://maps.googleapis.com/maps/api/streetview'
+    url += '?size=400x400&location=%f,%f&fov=%s&heading=%d&pitch=%d'
+
+    # get street view image
+    response = requests.get(url % (lat, lon, 90, 90, 1))
+
+
+# @celery.task(rate_limit="1/s")
+# def get_snapped_points(start_lat, start_lon, end_lat, end_lon):
+# api_key = current_app.config['GOOGLE_STREET_VIEW_API_KEY']
+# url = 'https://roads.googleapis.com/v1/snapToRoads'
+# url += '?path=%f,%f|%f,%f&key=%s&interpolate=true' % (
+# start_lat, start_lon, end_lat, end_lon, api_key)
+#
+#     response = requests.get(url)
+#     snapped_points = json.loads(response.data)['snappedPoints']
+#
+#     for pt in snapped_points:
+#         get_google_street_view_image.delay(lat=pt['location']['latitude'],
+#                                            lon=pt['location']['longitude'])
+
+@celery.task(rate_limit="1/s")
+def get_directions(origin_lat, origin_lon, destination_lat, destination_lon):
+    api_key = current_app.config['GOOGLE_STREET_VIEW_API_KEY']
+    url = "https://maps.googleapis.com/maps/api/directions/json"
+    url += "?origin=%f,%f&destination=%f,%f&avoid=highways&key=%s" % (
+        origin_lat, origin_lon, destination_lat, destination_lon, api_key)
+
+    response = requests.get(url)
+    route = json.loads(response.text)['routes'][0]
+
+    # build polyline for driving segments
+    polyline = []
+    for leg in route['legs']:
+        for step in leg['steps']:
+            if step['travel_mode'] == 'DRIVING':
+                polyline.extend(decode_google_polyline(step['polyline']['points']))
+
+    geo_json = {
+        "type": "GeometryCollection",
+        "geometries": [
+            {"type": "LineString",
+             "coordinates": [[pt[1], pt[0]] for pt in polyline]
+            },
+            {
+                "type": "MultiPoint",
+                "coordinates": []
+            }]
+    }
+    previous = polyline[0]
+    for i in range(1, len(polyline) - 1):
+        if distance(previous[0], previous[1], polyline[i][0], polyline[i][1]) > 2000:
+            bearing = calculate_plane_perpendicular_to_travel(polyline[i - 1], polyline[i],
+                                                          polyline[i + 1])
+            if random.choice([True, False]):
+                bearing += 180
+
+            offset = get_destination(polyline[i], bearing, 0.05)  # km
+            geo_json['geometries'][1]['coordinates'].append([offset[1], offset[0]])
+            previous = polyline[i]
+            has_street_view_image(polyline[i][0], polyline[i][1], bearing)
+
+    print json.dumps(geo_json)
+
+@celery.task(rate_limit="1/s")
+def has_street_view_image(lat, lon, heading):
+    url = "https://maps.googleapis.com/maps/api/streetview"
+    url += "?size=400x400&location=%f,%f&fov=90&heading=%f&pitch=10" % (lat, lon, heading)
+
+    response = requests.get(url)
+    if int(response.headers['content-length']) < 8000:
+        return
+
+    # get image
+    f = StringIO.StringIO(response.content)
+
+    img = Img.open(f)
+    img.show()
+
+
+@celery.task
+def get_street_view_coverage(x,y,z=21):
+    url = "http://mt1.googleapis.com/vt?hl=en-US&lyrs=svv|cb_client:apiv3&style=40,18&gl=US&x=%d&y=%d&z=%d" % (x, y, z)
+    response = requests.get(url)
+    f = StringIO.StringIO(response.content)
+    img = Img.open(f)
+
+    # save image to s3
+    s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
+                         current_app.config['AWS_SECRET_ACCESS_KEY'])
+
+    # Get bucket
+    bucket = s3.get_bucket('gfsad30')
+
+    cache_control = 'max-age=200'
+    content_type = 'image/png'
+
+    s3_file = Key(bucket)
+    s3_file.key = 'temp/google_street_view_tiles/%d/%d/%d.PNG' % (z, x, y)
+    s3_file.set_metadata('cache-control', cache_control)
+    s3_file.set_metadata('content-type', content_type)
+    s3_file.set_contents_from_string(f.getvalue())
+    s3_file.make_public()
