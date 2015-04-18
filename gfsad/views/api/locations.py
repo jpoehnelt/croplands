@@ -39,6 +39,10 @@ def build_static_locations(result=None, **kwargs):
     """
     build_static_records.delay()
 
+def change_field_names(data=None, **kwargs):
+    if 'photos' in data:
+        data['images'] = data['photos']
+        del data['photos']
 
 def create(app):
     api.create_api(Location,
@@ -46,7 +50,7 @@ def create(app):
                    collection_name='locations',
                    methods=['GET', 'POST', 'PATCH', 'DELETE'],
                    preprocessors={
-                       'POST': [add_user_to_posted_data],
+                       'POST': [change_field_names, add_user_to_posted_data],
                        'PATCH_SINGLE': [api_roles(['team', 'admin']), remove_relations],
                        'PATCH_MANY': [api_roles('admin'), remove_relations],
                        'DELETE': [api_roles('admin')]
