@@ -13,6 +13,7 @@ class Default(object):
 
     # Access Keys
     GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+    GOOGLE_STREET_VIEW_API_KEY = os.environ.get('GOOGLE_STREET_VIEW_API_KEY')
     GOOGLE_SERVICE_ACCOUNT = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -55,6 +56,7 @@ class Testing(Default):
     CELERY_ALWAYS_EAGER = False
 
     POSTMARK_API_KEY = 'POSTMARK_API_TEST'
+
 
 
 class Development(Default):
