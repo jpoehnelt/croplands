@@ -7,6 +7,7 @@ from boto.s3.key import Key
 import datetime
 import gzip
 import json
+from gfsad.utils.s3 import upload_file_to_s3
 
 
 @celery.task
@@ -88,12 +89,14 @@ def build_classifications_result():
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
 
     # Get bucket
-    bucket = s3.get_bucket('gfsad30')
+    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
 
     if current_app.testing:
         key = 'test/json/classifications.test.json'
+        key_csv = 'test/json/classifications.test.csv'
     else:
         key = 'public/json/classifications.json'
+        key_csv = 'public/json/classifications.csv'
 
     content = {
         'num_results': len(records),
@@ -107,20 +110,23 @@ def build_classifications_result():
         'objects': records
     }
 
-    # fake a file for gzip
-    out = StringIO.StringIO()
-
-    k = Key(bucket)
-
-    k.key = key
-
-    k.set_metadata('content-type', 'application/javascript')
-    k.set_metadata('cache-control', 'max-age=3000')
-    k.set_metadata('content-encoding', 'gzip')
-
-    with gzip.GzipFile(fileobj=out, mode="w") as outfile:
-        outfile.write(json.dumps(content))
-
-    k.set_contents_from_string(out.getvalue())
-    k.make_public()
-
+    upload_file_to_s3(json.dumps(content), key, 'application/javascript')
+    # # fake a file for gzip
+    # out = StringIO.StringIO()
+    # out_csv = StringIO.StringIO()
+    #
+    # k = Key(bucket)
+    #
+    #
+    # k.key = key
+    #
+    # k.set_metadata('content-type', 'application/javascript')
+    # k.set_metadata('cache-control', 'max-age=3000')
+    # k.set_metadata('content-encoding', 'gzip')
+    #
+    # with gzip.GzipFile(fileobj=out, mode="w") as outfile:
+    #     outfile.write(json.dumps(content))
+    #
+    # k.set_contents_from_string(out.getvalue())
+    # k.make_public()
+    #

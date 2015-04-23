@@ -152,7 +152,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
 
     # Get bucket
-    bucket = s3.get_bucket('gfsad30')
+    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
 
     cache_control = 'max-age=2000000'
     content_type = 'image/jpeg'
@@ -276,7 +276,7 @@ def get_street_view_coverage(x,y,z=21):
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
 
     # Get bucket
-    bucket = s3.get_bucket('gfsad30')
+    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
 
     cache_control = 'max-age=200'
     content_type = 'image/png'

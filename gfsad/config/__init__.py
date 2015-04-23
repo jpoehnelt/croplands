@@ -36,6 +36,7 @@ class Default(object):
     DG_EV_CONNECT_ID = os.environ.get('DG_EV_CONNECT_ID')
     DG_EV_USERNAME = os.environ.get('DG_EV_USERNAME')
     DG_EV_PASSWORD = os.environ.get('DG_EV_PASSWORD')
+    AWS_S3_BUCKET = 'gfsad30'
 
 class Testing(Default):
     ENV = 'TESTING'
@@ -57,6 +58,7 @@ class Testing(Default):
 
     POSTMARK_API_KEY = 'POSTMARK_API_TEST'
 
+    AWS_S3_BUCKET = 'gfsad30-test'
 
 
 class Development(Default):
