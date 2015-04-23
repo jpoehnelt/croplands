@@ -95,6 +95,8 @@ class Image(db.Model):
     classifications_majority_agreement = db.Column(db.Integer, index=True, default=0)
     classifications_majority_class = db.Column(db.Integer, index=True, default=0)
 
+    location = relationship("Location")
+
     flagged = db.Column(db.Integer, default=0)
 
 
