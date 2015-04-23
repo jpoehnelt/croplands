@@ -1,7 +1,7 @@
 from gfsad import create_app, db, limiter
 import unittest
-from gfsad.tasks.high_res_imagery import get_image
-from gfsad.tasks.classifications import build_classifications_result
+from gfsad.tasks.high_res_imagery import get_image, get_google_street_view_image, get_directions
+from gfsad.tasks.classifications import build_classifications_result, compute_image_classification_statistics
 from gfsad.models import Image
 import json
 
@@ -85,10 +85,39 @@ class TestHighResImage(unittest.TestCase):
 
                 response = c.post('/api/image_classifications', headers=headers,
                                   data=json.dumps(data))
+                data = {
+                    "image": image_id,
+                    "classification": 3
+                }
 
+                response = c.post('/api/image_classifications', headers=headers,
+                                  data=json.dumps(data))
+                data = {
+                    "image": image_id,
+                    "classification": 3
+                }
+
+                response = c.post('/api/image_classifications', headers=headers,
+                                  data=json.dumps(data))
                 print response.data
+
                 self.assertEqual(response.status_code, 201)
+                compute_image_classification_statistics(image_id)
                 build_classifications_result()
 
+    # def test_get_google_street_view_image(self):
+    #     with self.app.app_context():
+    #         data = {'lat': 35.198136597203195, 'lon': -111.64765298366547}
+    #         get_google_street_view_image(**data)
+
+    def test_directions(self):
+        with self.app.app_context():
+            origin_lat = 35.198136597203195
+            origin_lon = -111.64765298366547
+
+            destination_lat = 35.198136597203195
+            destination_lon = -111.14765298366547
+
+            # polyline = get_directions(origin_lat, origin_lon, destination_lat, destination_lon)
 
 

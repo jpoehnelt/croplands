@@ -52,16 +52,17 @@ def build_classifications_result():
         ]
     cmd = """
           SELECT
-          lat,
-          lon,
-          classifications_count,
-          classifications_majority_class,
-          classifications_majority_agreement,
-          date_acquired,
-          date_acquired_earliest,
-          date_acquired_latest
+          location.lat,
+          location.lon,
+          image.classifications_count,
+          image.classifications_majority_class,
+          image.classifications_majority_agreement,
+          image.date_acquired,
+          image.date_acquired_earliest,
+          image.date_acquired_latest
 
           FROM image
+          JOIN location on image.location_id = location.id
           WHERE classifications_count > 0
           """
 
