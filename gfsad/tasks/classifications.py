@@ -40,15 +40,15 @@ def build_classifications_result():
 
     ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, http://www.croplands.org'
     classes = [
-            {'id': 0, 'order': 0, 'label': 'Unknown', 'description': 'Not cropland is...'},
-            {'id': 1, 'order': 1, 'label': 'Cropland', 'description': 'Cropland is...'},
-            {'id': 2, 'order': 2, 'label': 'Forest', 'description': 'Forest is ...'},
-            {'id': 3, 'order': 3, 'label': 'Grassland', 'description': 'Grassland is ...'},
-            {'id': 4, 'order': 5, 'label': 'Barren', 'description': 'Barrenland is ...'},
-            {'id': 5, 'order': 7, 'label': 'Urban/Builtup', 'description': 'Urban is ...'},
-            {'id': 6, 'order': 4, 'label': 'Shrub', 'description': 'Shrub is ...'},
-            {'id': 7, 'order': 6, 'label': 'Water', 'description': 'Water is ...'}
-        ]
+        {'id': 0, 'order': 0, 'label': 'Unknown', 'description': 'Not cropland is...'},
+        {'id': 1, 'order': 1, 'label': 'Cropland', 'description': 'Cropland is...'},
+        {'id': 2, 'order': 2, 'label': 'Forest', 'description': 'Forest is ...'},
+        {'id': 3, 'order': 3, 'label': 'Grassland', 'description': 'Grassland is ...'},
+        {'id': 4, 'order': 5, 'label': 'Barren', 'description': 'Barrenland is ...'},
+        {'id': 5, 'order': 7, 'label': 'Urban/Builtup', 'description': 'Urban is ...'},
+        {'id': 6, 'order': 4, 'label': 'Shrub', 'description': 'Shrub is ...'},
+        {'id': 7, 'order': 6, 'label': 'Water', 'description': 'Water is ...'}
+    ]
     cmd = """
           SELECT
           location.lat,
@@ -98,12 +98,14 @@ def build_classifications_result():
 
     # make csv file
     csv_file = StringIO.StringIO()
-    
+
     writer = csv.writer(csv_file)
     writer.writerow(columns)
     for row in records:
         writer.writerow(row)
 
     # upload to s3
-    upload_file_to_s3(json.dumps(content), '/json/classifications.json', 'application/javascript')
-    upload_file_to_s3(csv_file.getvalue(), '/csv/classifications.csv', 'text/csv; charset=utf-8; header=present')
+    upload_file_to_s3(json.dumps(content), '/public/json/classifications.json',
+                      'application/javascript')
+    upload_file_to_s3(csv_file.getvalue(), '/public/csv/classifications.csv',
+                      'text/csv; charset=utf-8; header=present')
