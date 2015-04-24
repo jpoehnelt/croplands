@@ -9,6 +9,7 @@ from gfsad.utils.s3 import upload_file_to_s3
 
 @celery.task
 def compute_image_classification_statistics(image_id):
+    print "Computing Image Classification Statistics for Image #%d" % image_id
     image = Image.query.get(image_id)
 
     classification_count = [0 for i in range(0, 10)]
@@ -105,4 +106,4 @@ def build_classifications_result():
 
     # upload to s3
     upload_file_to_s3(json.dumps(content), '/json/classifications.json', 'application/javascript')
-    upload_file_to_s3(csv_file.getvalue(), '/csv/classifications.csv', 'application/javascript')
+    upload_file_to_s3(csv_file.getvalue(), '/csv/classifications.csv', 'text/csv; charset=utf-8; header=present')
