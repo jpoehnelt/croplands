@@ -1,11 +1,8 @@
 from gfsad import celery
 from gfsad.models import db, Image
-from flask import current_app
 import StringIO
-import boto
-from boto.s3.key import Key
 import datetime
-import gzip
+import csv
 import json
 from gfsad.utils.s3 import upload_file_to_s3
 
@@ -83,7 +80,8 @@ def build_classifications_result():
 
     print "Building json with %d classifications" % len(records)
 
-    key = '/json/classifications.json'
+    key_json = '/json/classifications.json'
+    key_csv = '/json/classifications.csv'
 
     content = {
         'num_results': len(records),
@@ -97,4 +95,14 @@ def build_classifications_result():
         'objects': records
     }
 
-    upload_file_to_s3(json.dumps(content), key, 'application/javascript')
+    # make csv file
+    csv_file = StringIO.StringIO()
+    
+    writer = csv.writer(csv_file)
+    writer.writerow(columns)
+    for row in records:
+        writer.writerow(row)
+
+    # upload to s3
+    upload_file_to_s3(json.dumps(content), '/json/classifications.json', 'application/javascript')
+    upload_file_to_s3(csv_file.getvalue(), '/csv/classifications.csv', 'application/javascript')
