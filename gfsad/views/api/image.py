@@ -10,7 +10,7 @@ from gfsad.tasks.classifications import compute_image_classification_statistics,
 
 
 def update_image_classification_statistics(result=None, **kwarg):
-    compute_image_classification_statistics.delay(result['image'])
+    compute_image_classification_statistics(result['image'])
     build_classifications_result.delay()
 
 
