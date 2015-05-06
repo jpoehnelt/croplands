@@ -57,7 +57,7 @@ def add_cors_headers(response):
         # print "add_cors_headers: Attribute Error - " + str(response)
         return response
 
-    if method == 'PUT' or method == 'PATCH' or method == 'DELETE' or method == 'POST':
+    if method in ['PUT', 'PATCH','DELETE','POST', 'OPTIONS']:
         return response
 
     # set cache max age
