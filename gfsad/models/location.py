@@ -90,6 +90,7 @@ class Image(db.Model):
     date_acquired_earliest = db.Column(db.DateTime)
     date_acquired_latest = db.Column(db.DateTime)
 
+    classifications_priority = db.Column(db.Integer, default=0)
     classifications = relationship("ImageClassification", cascade="all, delete-orphan")
     classifications_count = db.Column(db.Integer, index=True, default=0)
     classifications_majority_agreement = db.Column(db.Integer, index=True, default=0)
