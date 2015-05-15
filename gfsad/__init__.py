@@ -1,4 +1,4 @@
-from flask import Flask, request, g
+from flask import Flask, request, g, redirect
 from flask.ext.cache import Cache
 from flask.ext.compress import Compress
 from flask.ext.restless import APIManager
@@ -9,6 +9,8 @@ from flask.ext.celery import Celery
 from flask_limiter import Limiter, HEADERS
 from gfsad.misc import PostMarkHandler
 import logging
+from urlparse import urlparse, urlunparse
+
 
 # APIManager.APINAME_FORMAT = 'api.{0}'
 # APIManager.BLUEPRINTNAME_FORMAT = '{0}'
@@ -42,14 +44,16 @@ jwt = JWT()
 celery = Celery()
 mail = Mail()
 
-
 from gfsad.models import db, User
 
 
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = request.headers.get('Access-Control-Request-Headers', '*')
-    response.headers['Access-Control-Allow-Methods'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = request.headers.get(
+        'Access-Control-Request-Headers', '')
+    response.headers['Access-Control-Allow-Methods'] = request.headers.get(
+        'Access-Control-Request-Methods', '')
+
     # Do nothing for post, patch, delete etc..
     try:
         method = [e for e in request.url_rule.methods][-1]
@@ -57,7 +61,7 @@ def add_cors_headers(response):
         # print "add_cors_headers: Attribute Error - " + str(response)
         return response
 
-    if method in ['PUT', 'PATCH','DELETE','POST', 'OPTIONS']:
+    if method in ['PUT', 'PATCH', 'DELETE', 'POST', 'OPTIONS']:
         return response
 
     # set cache max age
@@ -78,7 +82,7 @@ def create_app(config='Testing'):
     app = Flask(__name__)
 
     # Configure the flask app
-    app.config.from_object("gfsad.config."+config)
+    app.config.from_object("gfsad.config." + config)
 
     # initialize all of the extensions
     jwt.init_app(app)
@@ -114,9 +118,11 @@ def create_app(config='Testing'):
     app.after_request(add_cors_headers)
 
     from gfsad.utils.log import log
+
     app.after_request(log)
 
     from gfsad.auth import load_user
+
     @limiter.request_filter
     def registered():
         """
@@ -132,6 +138,15 @@ def create_app(config='Testing'):
 
     import tasks.high_res_imagery
     import tasks.classifications
+
+    @app.before_request
+    def redirect_non_www():
+        """Redirect non-www requests to www."""
+        url_parts = urlparse(request.url)
+        if url_parts.netloc == 'croplands.org':
+            url_parts_list = list(url_parts)
+            url_parts_list[1] = 'www.croplands.org'
+            return redirect(urlunparse(url_parts_list), code=301)
 
     return app
 
