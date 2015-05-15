@@ -9,7 +9,6 @@ from flask.ext.celery import Celery
 from flask_limiter import Limiter, HEADERS
 from gfsad.misc import PostMarkHandler
 import logging
-from urlparse import urlparse, urlunparse
 
 
 # APIManager.APINAME_FORMAT = 'api.{0}'
@@ -138,15 +137,6 @@ def create_app(config='Testing'):
 
     import tasks.high_res_imagery
     import tasks.classifications
-
-    @app.before_request
-    def redirect_non_www():
-        """Redirect non-www requests to www."""
-        url_parts = urlparse(request.url)
-        if url_parts.netloc == 'croplands.org':
-            url_parts_list = list(url_parts)
-            url_parts_list[1] = 'www.croplands.org'
-            return redirect(urlunparse(url_parts_list), code=301)
 
     return app
 
