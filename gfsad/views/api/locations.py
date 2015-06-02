@@ -30,8 +30,8 @@ def merge_same_location_lat_long(data=None, **kwargs):
 
 
 def get_time_series(result=None, **kwargs):
-    get_ndvi.delay(id=result['id'], lat=result['lat'], lon=result['lon'])
-
+    # get_ndvi.delay(id=result['id'], lat=result['lat'], lon=result['lon'])
+    pass
 
 def build_static_locations(result=None, **kwargs):
     """
