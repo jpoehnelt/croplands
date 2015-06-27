@@ -5,7 +5,7 @@ import datetime
 import csv
 import json
 from gfsad.utils.s3 import upload_file_to_s3
-
+from gfsad.utils.datetime import strftime
 
 @celery.task
 def compute_image_classification_statistics(image_id):
@@ -73,16 +73,13 @@ def build_classifications_result():
             row['classifications_count'],
             row['classifications_majority_class'],
             row['classifications_majority_agreement'],
-            row['date_acquired'].strftime("%Y-%m-%d"),
-            row['date_acquired_earliest'].strftime("%Y-%m-%d"),
-            row['date_acquired_latest'].strftime("%Y-%m-%d"),
+            strftime(row['date_acquired']),
+            strftime(row['date_acquired_earliest']),
+            strftime(row['date_acquired_latest'])
         ] for row in result
     ]
 
     print "Building json with %d classifications" % len(records)
-
-    key_json = '/json/classifications.json'
-    key_csv = '/json/classifications.csv'
 
     content = {
         'num_results': len(records),
