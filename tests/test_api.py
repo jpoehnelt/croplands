@@ -6,7 +6,7 @@ from gfsad import create_app, db, limiter
 from gfsad.auth import make_jwt
 from gfsad.models import User
 from gfsad.exceptions import Unauthorized
-from copy import deepcopy
+
 
 def get_payload(token):
     encoded_payload = token.split(".")[1].strip()
@@ -137,7 +137,7 @@ class TestApi(TestCase):
             for key, val in data.iteritems():
                 self.assertEqual(val, json.loads(get.data)[key])
 
-    def dtest_create_location_with_sub_models(self):
+    def test_create_location_with_sub_models(self):
         with self.app.test_client() as c:
             headers = [('Content-Type', 'application/json')]
             user = self.create_user(c)
@@ -147,7 +147,8 @@ class TestApi(TestCase):
             # without user
             data = {'lat': 0, 'lon': 0,
                     'records': [{'year': 2014, 'month': 1}],
-                    'images': [{'url': 'adsf', 'lat': 0.01, 'lon': 0.0123, 'date_acquired': '2012-10-01'}]
+                    'images': [
+                        {'url': 'adsf', 'lat': 0.01, 'lon': 0.0123, 'date_acquired': '2012-10-01'}]
             }
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
             response = json.loads(post.data)
@@ -157,7 +158,8 @@ class TestApi(TestCase):
             # with user
             data = {'lat': 1, 'lon': 0,
                     'records': [{'year': 2014, 'month': 1}],
-                    'images': [{'url': 'adsfasd', 'lat': 0.01, 'lon': 0.0123, 'date_acquired': '2012-10-01'}]
+                    'images': [{'url': 'adsfasd', 'lat': 0.01, 'lon': 0.0123,
+                                'date_acquired': '2012-10-01'}]
             }
             post = c.post('/api/locations', headers=user_headers, data=json.dumps(data))
             response = json.loads(post.data)
