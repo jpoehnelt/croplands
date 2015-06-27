@@ -21,11 +21,14 @@ def image_view():
     This view allows users to upload photos of locations from their mobile application.
     :return: json response
     """
+
+    print request.__dict__
     # get the accompanying data
     data = request.form
 
     for field in ['location_id', 'lat', 'lon', 'date_acquired']:
         if field not in data:
+            print "missing %s" % field
             raise BadRequest(description='Image requires %s.' % field)
 
     if 'file' in request.files and request.files['file'] is not None:
@@ -37,6 +40,7 @@ def image_view():
 
         # check that file type is allowed NAIVE check
         if not allowed_file(filename):
+            print "bad file type"
             raise BadRequest('Bad File Type')
 
         # get file for processing and uploading
