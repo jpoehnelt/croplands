@@ -10,7 +10,7 @@ except ImportError:
 class Default(object):
     ENV = 'DEFAULT'
     CSRF_ENABLED = False
-
+    ALLOWED_IMG_EXTENSIONS = ['jpg', 'png']
     # Access Keys
     GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
     GOOGLE_STREET_VIEW_API_KEY = os.environ.get('GOOGLE_STREET_VIEW_API_KEY')
