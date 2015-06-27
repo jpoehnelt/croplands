@@ -4,7 +4,7 @@ from gfsad.exceptions import ImageProcessingError
 from gfsad.utils.s3 import upload_image
 from processors import api_roles, add_user_to_posted_data
 import uuid
-from flask import request
+from flask import request, current_app
 from gfsad.tasks.classifications import compute_image_classification_statistics, \
     build_classifications_result
 
@@ -38,12 +38,12 @@ def check_for_base64(data=None, **kwargs):
     if 'image' in data:
         filename = 'img/' + str(uuid.uuid4()) + '.JPG'
         try:
-            upload_image(data['image'], filename)
+            upload_image(data['image'], encoded_image=True, filename=filename)
         except:
             raise ImageProcessingError()
         else:
             data['url'] = filename
-    del data['image']
+        del data['image']
 
 
 def create(app):
@@ -52,7 +52,7 @@ def create(app):
                    collection_name='images',
                    methods=['GET', 'PATCH', 'POST', 'DELETE'],
                    preprocessors={
-                       'POST': [api_roles(['partner', 'team', 'admin']), add_user_to_posted_data,
+                       'POST': [add_user_to_posted_data,
                                 check_for_base64],
                        'PATCH_SINGLE': [api_roles(['team', 'admin'])],
                        'PATCH_MANY': [api_roles('admin')]
