@@ -9,12 +9,13 @@ import StringIO
 import gzip
 
 
-def upload_image(encoded_image, filename='img/' + str(uuid.uuid4()) + '.JPG', public=True,
+def upload_image(img=None, encoded_image=True, filename='images/' + str(uuid.uuid4()) + '.JPG', public=True,
                  cache_control='max-age=2000000',
                  content_type='image/jpeg'):
     """
     Uploads a base64 encoded image to amazon s3 bucket.
-    :param encoded_image: base64 encoded image
+    :param img: data for image
+    :param encoded_image: if base64 encoded image
     :param filename: s3 filename
     :param public: boolean if public
     :param cache_control: http cache-control value
@@ -25,7 +26,12 @@ def upload_image(encoded_image, filename='img/' + str(uuid.uuid4()) + '.JPG', pu
     f = cStringIO.StringIO()
 
     # manipulate with pillow
-    img = Image.open(cStringIO.StringIO(base64.b64decode(encoded_image)))
+    if encoded_image:
+        img = base64.b64decode(img)
+        img = Image.open(cStringIO.StringIO(img))
+    else:
+        img = Image.open(img)
+        
     img.convert("RGB")
     img.thumbnail((600, 600))
     img.save(f, 'JPEG', quality=60)
@@ -39,7 +45,7 @@ def upload_image(encoded_image, filename='img/' + str(uuid.uuid4()) + '.JPG', pu
 
     # create file
     s3_file = Key(bucket)
-    s3_file.key = filename  # 'img/' + str(uuid.uuid4()) + '.JPG'
+    s3_file.key = filename
     s3_file.set_metadata('cache-control', cache_control)
     s3_file.set_metadata('content-type', content_type)
     s3_file.set_contents_from_string(f.getvalue())
@@ -111,6 +117,3 @@ def upload_file_to_s3(contents, key, content_type, do_gzip=True, max_age=300, pu
 
     if public:
         k.make_public()
-
-
-
