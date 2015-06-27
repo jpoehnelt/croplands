@@ -98,11 +98,13 @@ def create_app(config='Testing'):
     from gfsad.views.auth import auth
     from gfsad.views.gee import gee
     from gfsad.views.aws import aws
+    from gfsad.views.upload import upload
 
     app.register_blueprint(public)
     app.register_blueprint(gee)
     app.register_blueprint(aws)
     app.register_blueprint(auth)
+    app.register_blueprint(upload)
 
     from gfsad.views.api import init_api
 
