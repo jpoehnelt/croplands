@@ -4,7 +4,8 @@ import base64
 from gfsad import create_app, db, limiter
 from gfsad.models import User
 from StringIO import StringIO
-
+import os
+import inspect
 
 def get_payload(token):
     encoded_payload = token.split(".")[1].strip()
@@ -52,8 +53,9 @@ class TestUpload(TestCase):
     def test_image_upload(self):
         with self.app.test_client() as c:
             location = self.create_location(c)
+            d = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
-            with open('test.JPG', 'r') as f:
+            with open(os.path.join(d, 'test.JPG'), 'r') as f:
                 img = f.read()
 
             data = {

@@ -25,16 +25,16 @@ class TestHighResImage(unittest.TestCase):
         super(TestHighResImage, cls).setUpClass()
         cls.app = create_app('Testing')
 
-    def test_get_image(self):
-        with self.app.app_context():
-            lat= 35.198136597203195
-            lon = -111.64765298366547
-
-            get_image(lat, lon, 18)
-
-            image = Image.query.first()
-            self.assertAlmostEqual(lat, image.lat, delta=0.001)
-            self.assertAlmostEqual(lon, image.lon, delta=0.001)
+    # def test_get_image(self):
+    #     with self.app.app_context():
+    #         lat= 35.198136597203195
+    #         lon = -111.64765298366547
+    #
+    #         get_image(lat, lon, 18)
+    #
+    #         image = Image.query.first()
+    #         self.assertAlmostEqual(lat, image.lat, delta=0.001)
+    #         self.assertAlmostEqual(lon, image.lon, delta=0.001)
 
 
     def test_post_classification(self):
@@ -46,7 +46,8 @@ class TestHighResImage(unittest.TestCase):
                 post = c.post('/api/locations', headers=headers, data=json.dumps(data))
                 response = json.loads(post.data)
 
-                get_image(response['lat'], response['lon'], 18, location_id=response['id'])
+                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0, 'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
+                post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
 
                 headers = [('Content-Type', 'application/json')]
                 response = c.get('/api/images', headers=headers)
@@ -67,12 +68,13 @@ class TestHighResImage(unittest.TestCase):
         with self.app.app_context():
             with self.app.test_client() as c:
                 headers = [('Content-Type', 'application/json')]
-                data = {'lat': 35.198136597203195, 'lon': -111.64765298366547}
+                data = {'lat': 35.312, 'lon': -111.112}
 
                 post = c.post('/api/locations', headers=headers, data=json.dumps(data))
                 response = json.loads(post.data)
 
-                get_image(response['lat'], response['lon'], 18, location_id=response['id'])
+                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0, 'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
+                post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
 
                 headers = [('Content-Type', 'application/json')]
                 response = c.get('/api/images', headers=headers)
