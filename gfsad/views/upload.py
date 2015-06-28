@@ -21,12 +21,6 @@ def image_view():
     This view allows users to upload photos of locations from their mobile device.
     """
 
-    print request.values
-    print request.data
-    print request.form
-    print request.json
-    print request.files
-
     # get the accompanying data
     data = request.form
 
