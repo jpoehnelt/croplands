@@ -18,16 +18,16 @@ def allowed_file(filename):
 @upload.route('/image', methods=['POST'])
 def image_view():
     """
-    This view allows users to upload photos of locations from their mobile application.
-    :return: json response
+    This view allows users to upload photos of locations from their mobile device.
     """
-    for k,v in request.__dict__.items():
-        print k, v
 
-    # print request.__dict__
+    print request.values
+    print request.data
+    print request.form
+    print request.json
+
     # get the accompanying data
     data = request.form
-    print data
 
     for field in ['location_id', 'lat', 'lon', 'date_acquired']:
         if field not in data:
