@@ -33,8 +33,8 @@ def upload_image(img=None, encoded_image=True, filename='images/' + str(uuid.uui
         img = Image.open(img)
         
     img.convert("RGB")
-    img.thumbnail((600, 600))
-    img.save(f, 'JPEG', quality=60)
+    img.thumbnail((1200, 1200))
+    img.save(f, 'JPEG', quality=75)
 
     # Connect to S3
     s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
