@@ -25,6 +25,7 @@ def image_view():
     print request.data
     print request.form
     print request.json
+    print request.files
 
     # get the accompanying data
     data = request.form
