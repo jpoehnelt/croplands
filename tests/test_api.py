@@ -134,8 +134,12 @@ class TestApi(TestCase):
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
             self.assertEqual(post.status_code, 201)
             get = c.get('/api/locations/%d' % json.loads(post.data)['id'])
+            response_data = json.loads(get.data)
             for key, val in data.iteritems():
-                self.assertEqual(val, json.loads(get.data)[key])
+                self.assertEqual(val, response_data[key])
+
+            self.assertEqual(-1.0, response_data['bearing'])
+
 
     def test_create_location_with_sub_models(self):
         with self.app.test_client() as c:

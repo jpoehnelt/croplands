@@ -32,7 +32,7 @@ class Location(db.Model):
     lon = db.Column(db.Float, nullable=False)
 
     #offset
-    bearing = db.Column(db.Float) # bearing from lat lon to center of field from lat lon
+    bearing = db.Column(db.Float, default=-1) # bearing from lat lon to center of field from lat lon
     distance = db.Column(db.Integer) # distance along bearing to center of field from lat lon
     accuracy = db.Column(db.Integer)
 
@@ -70,7 +70,7 @@ class Image(db.Model):
     source = db.Column(db.String)
     comments = db.Column(db.String)
 
-    bearing = db.Column(db.Integer)
+    bearing = db.Column(db.Integer, default=-1)
 
     lat = db.Column(db.Float, nullable=False, index=True)
     lon = db.Column(db.Float, nullable=False, index=True)
