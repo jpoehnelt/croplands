@@ -12,8 +12,17 @@ assets = {
             'palette': 'FFFFFF,CE7E45,DF923D,F1B555,FCD163,99B718,74A901,66A000,529400,3E8601,207401,056201,004C00,023B01,012E01,011D01,011301',
             'min': 0,
             'max': 1,
-        }}
-    ,
+        }
+    },
+    'ndvi_landsat_7_2014': {
+        'id': 'LANDSAT/LE7_L1T_ANNUAL_NDVI/2014',
+        'type': 'image',
+        'options': {
+            'palette': 'FFFFFF,CE7E45,DF923D,F1B555,FCD163,99B718,74A901,66A000,529400,3E8601,207401,056201,004C00,023B01,012E01,011D01,011301',
+            'min': 0,
+            'max': 1,
+        }
+    },
     'ndvi_modis': '',
     'australia_acca': '',
     'africa_acca': ''
@@ -57,11 +66,15 @@ def build_map(**kwargs):
     ee.Initialize(ee.ServiceAccountCredentials(current_app.config['GOOGLE_SERVICE_ACCOUNT'],
                                                key_data=current_app.config['GOOGLE_API_KEY']))
 
-    collection = ee.ImageCollection(asset['id'])
+    if asset['type'] != 'image':
+        collection = ee.ImageCollection(asset['id'])
 
-    collection.filterDate('2015-01-01', '2015-12-31')
+        collection.filterDate('2015-01-01', '2015-12-31')
 
-    image = collection.mean()
+        image = collection.first()
+    else:
+        image = ee.Image('LANDSAT/LE7_L1T_ANNUAL_NDVI/2014')
+
     mapid = image.getMapId(asset['options'])
 
     del mapid['image']
