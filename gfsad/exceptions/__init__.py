@@ -96,3 +96,22 @@ class ImageProcessingError(Exception):
         self.status_code = status_code
         self.headers = headers
         self.error = error
+
+
+class TileNotFound(Exception):
+    status_code = 404
+
+    def __init__(self, error="Image Processing Error",
+                 description="Something went wrong processing your image.", status_code=404,
+                 headers=None):
+        """
+        :param error: name of error
+        :param description: readable description
+        :param status_code: the http status code
+        :param headers: any applicable headers
+        :return:
+        """
+        self.description = description
+        self.status_code = status_code
+        self.headers = headers
+        self.error = error

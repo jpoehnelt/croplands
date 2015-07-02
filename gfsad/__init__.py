@@ -35,7 +35,7 @@ class JSONLimiter(Limiter):
         return response
 
 
-cache = Cache(config={'CACHE_TYPE': 'simple'})
+cache = Cache()
 compress = Compress()
 limiter = JSONLimiter(headers_enabled=True, global_limits=["1000 per minute"])
 api = APIManager()
@@ -63,11 +63,16 @@ def add_cors_headers(response):
     if method in ['PUT', 'PATCH', 'DELETE', 'POST', 'OPTIONS']:
         return response
 
+    if response.status_code == 404:
+        return response
+
     # set cache max age
     if '/api' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=120'
 
     elif '/gee/time_series' in request.url_rule.rule:
+        response.headers['Cache-Control'] = 'max-age=4000000'
+    elif '/tiles' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=4000000'
     elif '/gee/maps' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=80000'
@@ -99,12 +104,14 @@ def create_app(config='Testing'):
     from gfsad.views.gee import gee
     from gfsad.views.aws import aws
     from gfsad.views.upload import upload
+    from gfsad.views.tiles import tile_blueprint
 
     app.register_blueprint(public)
     app.register_blueprint(gee)
     app.register_blueprint(aws)
     app.register_blueprint(auth)
     app.register_blueprint(upload)
+    app.register_blueprint(tile_blueprint)
 
     from gfsad.views.api import init_api
 

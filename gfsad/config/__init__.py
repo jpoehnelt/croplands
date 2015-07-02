@@ -38,6 +38,10 @@ class Default(object):
     DG_EV_PASSWORD = os.environ.get('DG_EV_PASSWORD')
     AWS_S3_BUCKET = 'gfsad30'
 
+    CACHE_TYPE = 'redis'
+    REDISCLOUD_URL = 'redis://127.0.0.1:6379'
+    CACHE_REDIS_URL = REDISCLOUD_URL
+
 class Testing(Default):
     ENV = 'TESTING'
     DEBUG = True
@@ -98,6 +102,9 @@ class Production(Default):
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
     }
+
+    CACHE_TYPE = 'redis'
+    CACHE_REDIS_URL = REDISCLOUD_URL
 
 
 

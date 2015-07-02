@@ -1,7 +1,7 @@
-from gfsad.exceptions import FieldError, UserError, Unauthorized, InvalidLocation
+from gfsad.exceptions import FieldError, UserError, Unauthorized, InvalidLocation, TileNotFound
 from gfsad.views.json_response import JSONResponse
 from itsdangerous import SignatureExpired, BadSignature
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, Response
 from werkzeug.exceptions import BadRequest
 
 
@@ -48,3 +48,7 @@ def init_error_handlers(app):
     def bad_request(error):
         return JSONResponse(status_code=error.code, error='Bad Request',
                             description=error.description)
+
+    @app.errorhandler(TileNotFound)
+    def no_tile(error):
+        return Response(status=404, content_type='image/png')
