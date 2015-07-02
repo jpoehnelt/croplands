@@ -71,7 +71,7 @@ def build_map(**kwargs):
 
         collection.filterDate('2015-01-01', '2015-12-31')
 
-        image = collection.first()
+        image = collection.median()
     else:
         image = ee.Image('LANDSAT/LE7_L1T_ANNUAL_NDVI/2014')
 
