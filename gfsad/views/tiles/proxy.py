@@ -25,15 +25,6 @@ def tile_proxy(x, y, z, asset):
     url = build_url(map['mapid'], map['token'], int(x), int(y), int(z))
     req = requests.get(url, stream=True)
 
-    if req.status_code == 200:
-        max_age = 'max-age=%d' % 60 * 60 * 24 * 100
-    else:
-        max_age = 'max-age=%d' % 60 * 5
-
-    headers = {
-        'cache-control': max_age
-    }
-
     stream = stream_with_context(req.iter_content())
-    return Response(stream, content_type=req.headers['content-type'], headers=headers)
+    return Response(stream, content_type=req.headers['content-type'])
 
