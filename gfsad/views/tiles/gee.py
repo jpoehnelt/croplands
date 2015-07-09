@@ -24,8 +24,15 @@ assets = {
         }
     },
     'ndvi_modis': '',
-    'australia_acca': '',
-    'africa_acca': ''
+    'africa_acca': {
+        'id': 'GME/layers/10477185495164119823-16234180551177988132',
+        'type': 'collection',
+        'options': {
+            'palette': 'E1E1E1,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FFAA00,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,E1E1E1',
+            'min': 0,
+            'max': 17,
+        }
+    },
 }
 
 
@@ -66,14 +73,15 @@ def build_map(**kwargs):
     ee.Initialize(ee.ServiceAccountCredentials(current_app.config['GOOGLE_SERVICE_ACCOUNT'],
                                                key_data=current_app.config['GOOGLE_API_KEY']))
 
+
     if asset['type'] != 'image':
         collection = ee.ImageCollection(asset['id'])
-
-        collection.filterDate('2015-01-01', '2015-12-31')
+        if 'year' in kwargs:
+            collection = collection.filterDate('%s-01-01' % kwargs['year'], '%s-12-31' % kwargs['year'])
 
         image = collection.median()
     else:
-        image = ee.Image('LANDSAT/LE7_L1T_ANNUAL_NDVI/2014')
+        image = ee.Image(asset['id'])
 
     mapid = image.getMapId(asset['options'])
 
