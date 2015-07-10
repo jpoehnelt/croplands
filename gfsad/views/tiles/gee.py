@@ -28,19 +28,21 @@ assets = {
         'id': '10477185495164119823-10446176163891957399',
         'type': 'collection',
         'options': {
-            'palette': 'E1E1E1,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FEA800,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,E1E1E1',
+            'palette': '000000,FFFF00,66FFFF,FF66FF,00B0F0,00B050,FBD4B4',
             'min': 0,
-            'max': 17,
-        }
+            'max': 6,
+        },
+        'mask': [0]
     },
     'africa_acca': {
         'id': 'GME/layers/10477185495164119823-16234180551177988132',
         'type': 'collection',
         'options': {
-            'palette': 'E1E1E1,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FEA800,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,E1E1E1',
+            'palette': '000000,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FEA800,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,000000',
             'min': 0,
             'max': 17,
-        }
+        },
+        'mask': [0, 17]
     },
 }
 
@@ -82,15 +84,27 @@ def build_map(**kwargs):
     ee.Initialize(ee.ServiceAccountCredentials(current_app.config['GOOGLE_SERVICE_ACCOUNT'],
                                                key_data=current_app.config['GOOGLE_API_KEY']))
 
-
     if asset['type'] != 'image':
         collection = ee.ImageCollection(asset['id'])
         if 'year' in kwargs:
-            collection = collection.filterDate('%s-01-01' % kwargs['year'], '%s-12-31' % kwargs['year'])
+            collection = collection.filterDate('%s-01-01' % kwargs['year'],
+                                               '%s-12-31' % kwargs['year'])
 
         image = collection.median()
     else:
         image = ee.Image(asset['id'])
+
+    try:
+        if 'mask' in asset and len(asset['mask']) > 0:
+            mask = ee.Image(1)
+            for value in asset['mask']:
+                print 'masking %d' % value
+                mask = mask.And(image.neq(value))
+
+            image = image.mask(mask)
+
+    except Exception as e:
+        print "could not mask image %s" % e
 
     mapid = image.getMapId(asset['options'])
 
