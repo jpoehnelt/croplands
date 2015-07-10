@@ -24,11 +24,20 @@ assets = {
         }
     },
     'ndvi_modis': '',
+    'australia_acca': {
+        'id': '10477185495164119823-10446176163891957399',
+        'type': 'collection',
+        'options': {
+            'palette': 'E1E1E1,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FEA800,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,E1E1E1',
+            'min': 0,
+            'max': 17,
+        }
+    },
     'africa_acca': {
         'id': 'GME/layers/10477185495164119823-16234180551177988132',
         'type': 'collection',
         'options': {
-            'palette': 'E1E1E1,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FFAA00,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,E1E1E1',
+            'palette': 'E1E1E1,0E1771,1E5CFF,00B30C,8B7140,DFFFB7,FEA800,FFB9BC,F8FF00,00FFE3,73FF71,FD0000,FF50DC,FFBABB,953663,000000,000000,E1E1E1',
             'min': 0,
             'max': 17,
         }
