@@ -21,8 +21,9 @@ Flask-Celery-Helper==1.1.0
 Flask-Mail
 
 # Other
-passlib==1.6.2
-earthengine-api==0.1.39
+passlib
+earthengine-api
+google-api-python-client
 celery==3.1.17
 redis>=2.10.3
 boto==2.32.1
@@ -30,9 +31,9 @@ requests==2.3.0
 Pillow==2.8.1
 Shapely==1.5.6
 psycopg2
-beautifulsoup4==4.3.2
+#beautifulsoup4==4.3.2
 pyproj==1.9.4
 geopy
 
 newrelic
-locustio
+#locustio
