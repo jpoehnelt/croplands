@@ -18,7 +18,6 @@ class Default(object):
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_URL_SIGNING_KEY = os.environ.get('AWS_URL_SIGNING_KEY')
-    POSTMARK_API_KEY = os.environ.get('POSTMARK_API_KEY')
 
     AWS_URL_SIGNING_EXPIRATION_DEFAULT = 60 * 60
 
@@ -41,6 +40,7 @@ class Default(object):
     CACHE_TYPE = 'redis'
     REDISCLOUD_URL = 'redis://127.0.0.1:6379'
     CACHE_REDIS_URL = REDISCLOUD_URL
+    POSTMARK_API_KEY = 'POSTMARK_API_TEST'
 
 class Testing(Default):
     ENV = 'TESTING'
@@ -59,9 +59,6 @@ class Testing(Default):
     # SQLALCHEMY_ECHO = True
     CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
     CELERY_ALWAYS_EAGER = False
-
-    POSTMARK_API_KEY = 'POSTMARK_API_TEST'
-
     AWS_S3_BUCKET = 'gfsad30-test'
 
 
@@ -105,6 +102,7 @@ class Production(Default):
 
     CACHE_TYPE = 'redis'
     CACHE_REDIS_URL = REDISCLOUD_URL
+    POSTMARK_API_KEY = os.environ.get('POSTMARK_API_KEY')
 
 
 
