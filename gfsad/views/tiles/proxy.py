@@ -51,9 +51,6 @@ def tile_proxy(x, y, z, asset):
     url = build_url(map['mapid'], map['token'], int(x), int(y), int(z))
     req = requests.get(url, stream=True)
 
-    print "time to map_id: %dms, to gee response: %dms" % (
-        time_mid - time_start, current_milli_time() - time_mid)
-
     def generate():
         """
         returns response in pieces

@@ -75,9 +75,10 @@ def build_map(**kwargs):
     """
     Creates a map in Google Earth Engine using the python api and returns the map id and token.
     :param kwargs:
-    :return:
+    :return: mapid object
     """
     if kwargs['asset'] not in assets:
+        # lookup gee asset id
         raise TileNotFound('Map does not exist.')
 
     asset = assets[kwargs['asset']]
@@ -87,6 +88,7 @@ def build_map(**kwargs):
     if asset['type'] != 'image':
         collection = ee.ImageCollection(asset['id'])
         if 'year' in kwargs:
+            # todo allow for better date handling
             collection = collection.filterDate('%s-01-01' % kwargs['year'],
                                                '%s-12-31' % kwargs['year'])
 
@@ -94,17 +96,12 @@ def build_map(**kwargs):
     else:
         image = ee.Image(asset['id'])
 
-    try:
-        if 'mask' in asset and len(asset['mask']) > 0:
-            mask = ee.Image(1)
-            for value in asset['mask']:
-                print 'masking %d' % value
-                mask = mask.And(image.neq(value))
+    if 'mask' in asset and len(asset['mask']) > 0:
+        mask = ee.Image(1)
+        for value in asset['mask']:
+            mask = mask.And(image.neq(value))
 
-            image = image.mask(mask)
-
-    except Exception as e:
-        print "could not mask image %s" % e
+        image = image.mask(mask)
 
     mapid = image.getMapId(asset['options'])
 
