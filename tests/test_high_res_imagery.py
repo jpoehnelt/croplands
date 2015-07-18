@@ -1,8 +1,7 @@
 from gfsad import create_app, db, limiter
 import unittest
-from gfsad.tasks.high_res_imagery import get_image, get_google_street_view_image, get_directions
-from gfsad.tasks.classifications import build_classifications_result, compute_image_classification_statistics
-from gfsad.models import Image
+from gfsad.tasks.classifications import build_classifications_result, \
+    compute_image_classification_statistics
 import json
 
 
@@ -26,7 +25,7 @@ class TestHighResImage(unittest.TestCase):
         cls.app = create_app('Testing')
 
     # def test_get_image(self):
-    #     with self.app.app_context():
+    # with self.app.app_context():
     #         lat= 35.198136597203195
     #         lon = -111.64765298366547
     #
@@ -46,7 +45,8 @@ class TestHighResImage(unittest.TestCase):
                 post = c.post('/api/locations', headers=headers, data=json.dumps(data))
                 response = json.loads(post.data)
 
-                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0, 'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
+                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0,
+                              'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
                 post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
 
                 headers = [('Content-Type', 'application/json')]
@@ -73,7 +73,8 @@ class TestHighResImage(unittest.TestCase):
                 post = c.post('/api/locations', headers=headers, data=json.dumps(data))
                 response = json.loads(post.data)
 
-                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0, 'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
+                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0,
+                              'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
                 post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
 
                 headers = [('Content-Type', 'application/json')]
