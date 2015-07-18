@@ -140,6 +140,25 @@ class TestApi(TestCase):
 
             self.assertEqual(-1.0, response_data['bearing'])
 
+    def test_create_location_with_user(self):
+        with self.app.test_client() as c:
+            headers = [('Content-Type', 'application/json')]
+            user = self.create_user(c)
+
+            user_headers = headers + [('authorization', 'bearer ' + make_jwt(user))]
+
+            data = {'lat': 0, 'lon': 0,
+                    'records': [{'year': 2014, 'month': 1}],
+                    'images': [
+                        {'url': 'adsf', 'lat': 0.01, 'lon': 0.0123, 'date_acquired': '2012-10-01'}]
+            }
+            post = c.post('/api/locations', headers=user_headers, data=json.dumps(data))
+            response = json.loads(post.data)
+
+            self.assertEqual(len(data['records']), len(response['records']))
+            self.assertEqual(response['user_id'], user.id)
+            self.assertEqual(response['records'][0]['user_id'], user.id)
+            self.assertEqual(response['images'][0]['user_id'], user.id)
 
     def test_create_location_with_sub_models(self):
         with self.app.test_client() as c:
