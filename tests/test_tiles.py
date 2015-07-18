@@ -23,10 +23,10 @@ class TestTiles(TestCase):
         with cls.app.app_context():
             db.create_all()
 
-    def test_get_tile(self):
-        with self.app.test_client() as c:
-            r = c.get('/tiles/ndvi_landsat_7/1555/3228/13')
-            self.assertEqual(r.status_code, 200)
-
-            r = c.get('/tiles/ndvi_landsat_7/1555/3001/13')
-            self.assertEqual(r.status_code, 200)
+    # def test_get_tile(self):
+    #     with self.app.test_client() as c:
+    #         r = c.get('/tiles/ndvi_landsat_7/1555/3228/13')
+    #         self.assertEqual(r.status_code, 200)
+    #
+    #         r = c.get('/tiles/ndvi_landsat_7/1555/3001/13')
+    #         self.assertEqual(r.status_code, 200)
