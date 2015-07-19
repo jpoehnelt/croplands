@@ -1,7 +1,7 @@
 import datetime
 from unittest import TestCase
 from gfsad import create_app, limiter
-from gfsad.models import Location, db, TimeSeries
+from gfsad.models import Location, db, TimeSeries, User
 import random
 from sqlalchemy.exc import IntegrityError
 
@@ -48,3 +48,28 @@ class TestDatabase(TestCase):
             db.session.commit()
             self.assertAlmostEqual(data.date_updated, datetime.datetime.utcnow(),
                                    delta=datetime.timedelta(seconds=1))
+
+    def test_user_email_case_insensitivity(self):
+        """
+        Emails are by nature case insensitive. This test checks that
+        the user model correctly handles this specification.
+        :return:
+        """
+        with self.app.app_context():
+            data = {
+                'email': 'Test@test.net',
+                'password': 'password',
+                'first': 'First',
+                'last': 'Last'
+            }
+            user = User(**data)
+            assert(user.email.islower())
+
+            user = User.create(**data)
+            assert(user.email.islower())
+
+            user = User.from_email(data['email'])
+            self.assertIsNotNone(user)
+
+            user = User.from_login(data['email'], data['password'])
+            self.assertIsNotNone(user)

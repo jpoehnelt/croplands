@@ -241,6 +241,12 @@ class TestAuthViews(TestCase):
             self.assertEqual(payload['last'], me['last'])
             self.assertEqual(payload['email'], me['email'])
 
+            # check case insensitivity of email
+            response = c.post('/auth/login', headers=headers,
+                              data=json.dumps({'email': me['email'].upper(), 'password': me['password']}))
+            self.assertEqual(response.status_code, 200)
+
+            # check login without email
             response = c.post('/auth/login', headers=headers,
                               data=json.dumps({'password': me['password']}))
             response.json = json.loads(response.data)
