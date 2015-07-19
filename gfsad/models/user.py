@@ -104,7 +104,7 @@ class User(db.Model):
     @classmethod
     @jwt.authentication_handler
     def from_login(self, email, password):
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email.lower()).first()
 
         time.sleep(random.randint(0,1)/100)
 
