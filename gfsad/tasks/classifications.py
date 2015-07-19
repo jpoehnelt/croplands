@@ -5,7 +5,7 @@ import datetime
 import csv
 import json
 from gfsad.utils.s3 import upload_file_to_s3
-from gfsad.utils.datetime import strftime
+from gfsad.utils.datetime_helper import strftime
 
 @celery.task
 def compute_image_classification_statistics(image_id):

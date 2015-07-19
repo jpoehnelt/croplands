@@ -13,7 +13,6 @@ import datetime
 from gfsad.utils.geo import distance, decode_google_polyline, \
     calculate_plane_perpendicular_to_travel, get_destination
 import uuid
-import gzip
 import json
 import random
 
