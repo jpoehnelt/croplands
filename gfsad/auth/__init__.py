@@ -18,7 +18,7 @@ def generate_token(data, secret):
     return s.dumps(data)
 
 
-def decode_token(token, secret, max_age=300):
+def decode_token(token, secret, max_age=3600):
     """
     Returns the signed data for the token
 
@@ -27,8 +27,11 @@ def decode_token(token, secret, max_age=300):
     :param max_age:
     :return:
     """
+
     s = URLSafeTimedSerializer(secret_key=secret)
-    return s.loads(token, max_age=max_age)
+    ret = s.loads(token, max_age=max_age)
+    print ret
+    return ret
 
 
 def make_jwt(user):

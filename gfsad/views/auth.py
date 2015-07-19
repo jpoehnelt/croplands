@@ -101,6 +101,7 @@ def forgot_password():
 @limiter.limit("2 per day", methods=['POST'])
 def reset_password():
     token = request.json['token']
+    print 'Resetting password with: ' + token
     email = decode_token(token, current_app.config['SECRET_KEY'],
                          current_app.config['AUTH_RESET_TOKEN_EXPIRATION'])
     user = User.from_email(email)
