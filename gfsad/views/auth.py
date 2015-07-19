@@ -141,13 +141,13 @@ def send_reset_email(link, email):
 
     msg = Message(recipients=email, body=body, html=html,
                   subject='Global Croplands - Password Reset')
-    return send_email.delay(msg)
+    return send_email(msg)
 
-
+end
 def send_confirmation_email(link, email):
     html = render_template('email/confirmation_instructions.html', reset_link=link)
     body = render_template('email/confirmation_instructions.txt', reset_link=link)
 
     msg = Message(recipients=email, body=body, html=html,
                   subject='Global Croplands - Email Verification')
-    return send_email.delay(msg)
+    return send_email(msg)
