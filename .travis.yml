@@ -14,4 +14,4 @@ script: coverage run --source=gfsad setup.py test
 after_success: coveralls
 before_install:
 - openssl aes-256-cbc -K $encrypted_ed430a932405_key -iv $encrypted_ed430a932405_iv
-  -in google_api_key.key.enc -out google_api_key.key -d
+  -in google_api_key.enc -out google_api_key.key -d
