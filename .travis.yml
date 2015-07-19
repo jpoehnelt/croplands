@@ -6,10 +6,12 @@ install:
 - pip install coverage
 - pip install coveralls
 services:
-  - redis-server
-  - rabbitmq
+- redis-server
+- rabbitmq
 before_script:
-  - psql -c 'create database test;' -U postgres
+- psql -c 'create database test;' -U postgres
 script: coverage run --source=gfsad setup.py test
 after_success: coveralls
-
+before_install:
+- openssl aes-256-cbc -K $encrypted_ed430a932405_key -iv $encrypted_ed430a932405_iv
+  -in google_api_key.key.enc -out google_api_key.key -d

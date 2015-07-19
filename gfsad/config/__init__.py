@@ -6,13 +6,20 @@ try:
 except ImportError:
     pass
 
-
 class Default(object):
     ENV = 'DEFAULT'
     CSRF_ENABLED = False
     ALLOWED_IMG_EXTENSIONS = ['jpg', 'png']
+
     # Access Keys
-    GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+    try:
+        with open('google_api_key.key', 'r') as f:
+            GOOGLE_API_KEY = f.read()
+    except:
+        pass
+    else:
+        GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+
     GOOGLE_STREET_VIEW_API_KEY = os.environ.get('GOOGLE_STREET_VIEW_API_KEY')
     GOOGLE_SERVICE_ACCOUNT = os.environ.get('GOOGLE_SERVICE_ACCOUNT')
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
