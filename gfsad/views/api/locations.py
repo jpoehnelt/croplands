@@ -3,6 +3,7 @@ from gfsad.models import Location
 from processors import api_roles, add_user_to_posted_data, remove_relations
 from records import save_record_state_to_history
 from gfsad.tasks.records import get_ndvi, build_static_records
+from gfsad.utils.countries import find_country
 
 
 def process_records(result=None, **kwargs):
@@ -28,10 +29,26 @@ def merge_same_location_lat_long(data=None, **kwargs):
     pass
 
 
+def get_country(data=None, **kwargs):
+    """
+    This preprocessor gets the country.
+
+    :param data:
+    :param kwargs:
+    :return:
+    """
+
+    if 'country' not in data:
+        country = find_country(data['lon'], data['lat'])
+        if country is not None:
+            data['country'] = country['name']
+            data['continent'] = country['continent']
+
 
 def get_time_series(result=None, **kwargs):
     # get_ndvi.delay(id=result['id'], lat=result['lat'], lon=result['lon'])
     pass
+
 
 def build_static_locations(result=None, **kwargs):
     """
@@ -39,10 +56,12 @@ def build_static_locations(result=None, **kwargs):
     """
     build_static_records.delay()
 
+
 def change_field_names(data=None, **kwargs):
     if 'photos' in data:
         data['images'] = data['photos']
         del data['photos']
+
 
 def create(app):
     api.create_api(Location,
@@ -50,7 +69,7 @@ def create(app):
                    collection_name='locations',
                    methods=['GET', 'POST', 'PATCH', 'DELETE'],
                    preprocessors={
-                       'POST': [change_field_names, add_user_to_posted_data],
+                       'POST': [change_field_names, add_user_to_posted_data, get_country],
                        'PATCH_SINGLE': [api_roles(['team', 'admin']), remove_relations],
                        'PATCH_MANY': [api_roles('admin'), remove_relations],
                        'DELETE': [api_roles('admin')]
