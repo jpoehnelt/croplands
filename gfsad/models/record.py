@@ -15,6 +15,8 @@ class Record(db.Model):
         UniqueConstraint('year', 'location_id', 'month', name='one_year_per_location'),
     )
 
+    location = relationship("Location")
+
     # required id column
     id = db.Column(db.Integer, primary_key=True)
 
@@ -81,7 +83,7 @@ class RecordRating(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # foreign keys
-    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('user.id'), index=True, nullable=False)
     record_id = db.Column(db.Integer, ForeignKey('record.id'), index=True, nullable=False)
 
     # when

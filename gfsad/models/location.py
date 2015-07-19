@@ -28,15 +28,15 @@ class Location(db.Model):
     source = db.Column(db.String)
 
     # where
-    lat = db.Column(db.Float, nullable=False)
-    lon = db.Column(db.Float, nullable=False)
+    lat = db.Column(db.Float, nullable=False, index=True)
+    lon = db.Column(db.Float, nullable=False, index=True)
 
     #offset
     bearing = db.Column(db.Float, default=-1) # bearing from lat lon to center of field from lat lon
     distance = db.Column(db.Integer) # distance along bearing to center of field from lat lon
     accuracy = db.Column(db.Integer)
 
-    country = db.Column(db.Integer)
+    country = db.Column(db.String)
     continent = db.Column(db.String)
     field = db.Column(db.String)
 
@@ -45,9 +45,9 @@ class Location(db.Model):
     date_edited = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     # use
-    use_verification = db.Column(db.Boolean, default=False, index=True)
-    use_verification_locked = db.Column(db.Boolean, default=False, index=True)
-    use_valid = db.Column(db.Boolean, default=False, index=True)
+    use_validation = db.Column(db.Boolean, default=False, index=True)
+    use_validation_locked = db.Column(db.Boolean, default=False, index=True)
+    use_private = db.Column(db.Boolean, default=False, index=True)
     use_deleted = db.Column(db.Boolean, default=False)
 
     def __init__(self, *args, **kwargs):
