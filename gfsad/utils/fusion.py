@@ -8,6 +8,8 @@ from googleapiclient.http import MediaIoBaseUpload
 FUSION_TABLE_SCOPE = 'https://www.googleapis.com/auth/fusiontables'
 FUSION_TABLE_TEST = '1y6rdRvEPXW4r2zXHterHoDrGUVYxnUH_saPMdaCo'
 
+print current_app.config['GOOGLE_SERVICE_ACCOUNT'][0:10]
+print current_app.config['GOOGLE_API_KEY'][0:10]
 
 def init_google_service(scope=FUSION_TABLE_SCOPE, name='fusiontables', version='v2'):
     """
