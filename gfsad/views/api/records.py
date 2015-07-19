@@ -60,7 +60,8 @@ def mark_ratings_stale(result=None, **kwargs):
 
 
 def update_static_records(result=None, **kwargs):
-    build_static_records.delay()
+    # build_static_records.delay()
+    pass
 
 
 def notify(result=None, **kwargs):

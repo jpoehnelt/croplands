@@ -54,8 +54,8 @@ def build_static_locations(result=None, **kwargs):
     """
     Calls the celery task to rebuild the static locations for the web application.
     """
-    build_static_records.delay()
-
+    # build_static_records.delay()
+    pass
 
 def change_field_names(data=None, **kwargs):
     if 'photos' in data:
