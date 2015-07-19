@@ -3,6 +3,7 @@ from flask.ext.migrate import Migrate, MigrateCommand
 from flask.ext.script import Manager
 from celery.bin.celery import main as celery_main
 from gfsad import create_app, db
+from gfsad.models import Location
 import json
 import redis
 
@@ -26,6 +27,22 @@ def worker(Q="gfsad"):
     celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
                    '--concurrency', '10']
     with manager.app.app_context():
+        return celery_main(celery_args)
+
+
+@manager.command
+def flower():
+    with manager.app.app_context():
+        celery_args = ['celery', '-A', 'gfsad', 'flower',
+                       '--broker=' + manager.app.config['CELERY_BROKER_URL']]
+        return celery_main(celery_args)
+
+
+@manager.command
+def purge_tasks():
+    with manager.app.app_context():
+        celery_args = ['celery', '-A', 'gfsad', 'purge',
+                       '--broker=' + manager.app.config['CELERY_BROKER_URL']]
         return celery_main(celery_args)
 
 
@@ -58,6 +75,29 @@ def coverage():
         # for x in range(0, 2097152):
         # for y in range(500000, 1500000):
         # get_street_view_coverage(x, y, 21)
+
+
+@manager.command
+def country():
+    with manager.app.app_context():
+        locations = Location.query.filter_by(country=None).all()
+        from gfsad.utils.countries import find_country
+
+        c = 0
+        print len(locations)
+        for l in locations:
+            country = find_country(l.lon, l.lat)
+            if country is not None:
+                l.country = country['name']
+                l.continent = country['continent']
+
+            print l.country, l.continent, l.lat, l.lon
+            if c % 100 == 0:
+                print c
+                db.session.commit()
+            c += 1
+
+        db.session.commit()
 
 
 @manager.command
