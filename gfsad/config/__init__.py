@@ -100,7 +100,13 @@ class Production(Default):
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 
     CELERY_DEFAULT_QUEUE = 'gfsad'
-
+    CELERYBEAT_SCHEDULE = {
+        'build_fusion_tables': {
+            'task': 'gfsad.tasks.records.build_fusion_tables',
+            'schedule': timedelta(hours=1),
+            'options': {'queue': CELERY_DEFAULT_QUEUE}
+        },
+    }
     CACHE_TYPE = 'redis'
     CACHE_REDIS_URL = REDISCLOUD_URL
     POSTMARK_API_KEY = os.environ.get('POSTMARK_API_KEY')
