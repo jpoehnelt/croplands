@@ -24,7 +24,7 @@ def init_google_service(scope=FUSION_TABLE_SCOPE, name='fusiontables', version='
     return build(name, version, http=credentials.authorize(httplib2.Http()))
 
 
-def replace_rows(table_id, fd):
+def replace_rows(table_id, fd, startLine=None):
     """
     Replaces all rows in a fusion table with the fd of a csv.
     :param table_id: string
@@ -35,6 +35,6 @@ def replace_rows(table_id, fd):
 
     media_body = MediaIoBaseUpload(fd, mimetype='application/octet-stream')
 
-    return service.table().replaceRows(tableId=table_id, media_body=media_body).execute()
+    return service.table().replaceRows(tableId=table_id, media_body=media_body, startLine=startLine).execute()
 
 
