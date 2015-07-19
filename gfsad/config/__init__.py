@@ -13,8 +13,9 @@ class Default(object):
 
     # Access Keys
     try:
-        with open('google_api_key.key', 'r') as f:
+        with open('google_api.key', 'r') as f:
             GOOGLE_API_KEY = f.read()
+            print 'loaded google api key from file'
     except:
         pass
     else:
