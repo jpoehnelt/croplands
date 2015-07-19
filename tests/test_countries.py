@@ -1,5 +1,4 @@
 import unittest
-import csv
 from gfsad.utils import find_country
 
 
@@ -186,7 +185,7 @@ class TestCountries(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # def test_countries(self):
-    #     for country in TestCountries.countries:
-    #         c = find_country(country['lng'], country['lat'])
-    #         self.assertEqual(c['name'], country['name'])
+    def test_countries(self):
+        for country in TestCountries.countries:
+            c = find_country(country['lng'], country['lat'])
+            self.assertEqual(c['name'], country['name'])
