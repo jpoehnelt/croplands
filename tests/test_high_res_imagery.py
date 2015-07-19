@@ -1,9 +1,12 @@
-from gfsad import create_app, db, limiter
-import unittest
-from gfsad.tasks.classifications import build_classifications_result, \
-    compute_image_classification_statistics
-import json
-
+try:
+    from gfsad import create_app, db, limiter
+    import unittest
+    from gfsad.tasks.classifications import build_classifications_result, \
+        compute_image_classification_statistics
+    import json
+except ImportError as e:
+    print e
+    raise e
 
 class TestHighResImage(unittest.TestCase):
     app = None
