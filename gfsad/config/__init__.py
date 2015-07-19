@@ -100,13 +100,6 @@ class Production(Default):
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 
     CELERY_DEFAULT_QUEUE = 'gfsad'
-    CELERYBEAT_SCHEDULE = {
-        'add-every-5-minutes': {
-            'task': 'gfsad.tasks.records.build_static_records',
-            'schedule': timedelta(minutes=5),
-            'options': {'queue': CELERY_DEFAULT_QUEUE}
-        },
-    }
 
     CACHE_TYPE = 'redis'
     CACHE_REDIS_URL = REDISCLOUD_URL
