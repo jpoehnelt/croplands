@@ -45,7 +45,7 @@ class User(db.Model):
 
     def __init__(self, email, password, first, last, role="registered", organization=None,
                  country=None, **kwargs):
-        self.email = email
+        self.email = email.lower()
         self.first = first
         self.last = last
         self.role = role
@@ -139,7 +139,11 @@ class User(db.Model):
         :param email:
         :return: User
         """
-        return User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email.lower()).first()
+        if user is None:
+            print 'User not found for: %s' % email
+        return user
+
 
     @staticmethod
     @jwt.user_handler
