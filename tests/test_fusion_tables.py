@@ -1,7 +1,11 @@
 from unittest import TestCase
 from gfsad import create_app, limiter
 from gfsad.models import db
-from gfsad.utils.fusion import FUSION_TABLE_SCOPE, init_google_service, replace_rows
+try:
+    from gfsad.utils.fusion import FUSION_TABLE_SCOPE, init_google_service, replace_rows
+except ImportError as e:
+    print e
+    raise e
 import csv
 from cStringIO import StringIO
 
