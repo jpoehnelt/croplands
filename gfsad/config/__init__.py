@@ -15,11 +15,11 @@ class Default(object):
     try:
         with open('google_api.key', 'r') as f:
             GOOGLE_API_KEY = f.read()
-            print 'loaded google api key from file'
     except:
-        pass
-    else:
         GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
+    finally:
+        assert GOOGLE_API_KEY is not None
+
 
     GOOGLE_STREET_VIEW_API_KEY = os.environ.get('GOOGLE_STREET_VIEW_API_KEY')
     GOOGLE_SERVICE_ACCOUNT = os.environ.get('GOOGLE_SERVICE_ACCOUNT')

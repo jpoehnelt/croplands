@@ -16,9 +16,7 @@ def init_google_service(scope=FUSION_TABLE_SCOPE, name='fusiontables', version='
     :param name: string of the name of the resource
     :param version: string of the version
     :return: service
-    """
-    print current_app.config['GOOGLE_SERVICE_ACCOUNT'][0:10]
-    print current_app.config['GOOGLE_API_KEY'][0:10]
+     """
 
     # Create a new API service for interacting with Fusion Tables
     credentials = SignedJwtAssertionCredentials(current_app.config['GOOGLE_SERVICE_ACCOUNT'],
