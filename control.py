@@ -14,18 +14,23 @@ manager.add_command('db', MigrateCommand)
 
 
 @manager.command
-def beat():
-    celery_args = ['celery', 'beat', '-C', '--pidfile=']
+def beat(Q="gfsad"):
+    from random import randint
+
+    celery_args = ['celery', 'beat', '-C', '-l', 'info']
     with manager.app.app_context():
         return celery_main(celery_args)
 
 
-@manager.command
-def worker(Q="gfsad"):
+@manager.option('-b', '--beat', help='Include celery beat with worker')
+def worker(beat=False):
     from random import randint
-
-    celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
+    celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', 'gfsad',
                    '--concurrency', '10']
+
+    if type(beat) == str and beat.lower() == 'true':
+        celery_args.append('-B')
+
     with manager.app.app_context():
         return celery_main(celery_args)
 
@@ -112,6 +117,15 @@ def clear_mapids():
         for key in redis_client.scan_iter(match='flask_cache_map_*'):
             print 'deleting %s' % key
             redis_client.delete(key)
+
+@manager.command
+def build_static():
+    with manager.app.app_context():
+        from gfsad.tasks.records import build_fusion_tables, build_static_records
+        build_fusion_tables()
+        build_static_records()
+
+
 
 
 if __name__ == '__main__':
