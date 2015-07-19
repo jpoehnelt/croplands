@@ -23,7 +23,7 @@ def send_email(msg):
         "From": 'info@croplands.org',
         "ReplyTo": 'info@croplands.org',
         "To": msg['recipients'],
-        "Bcc": 'Justin.Poehnelt@gmail.com',
+        "Bcc": 'jpoehnelt@usgs.gov',
         "Subject": msg.get('subject', ''),
         "HtmlBody": msg.get('html', ''),
         "TextBody": msg.get('body', ''),
