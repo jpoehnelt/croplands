@@ -15,7 +15,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def beat():
-    celery_args = ['celery', 'beat', '-C']
+    celery_args = ['celery', 'beat', '-C', '--pidfile=']
     with manager.app.app_context():
         return celery_main(celery_args)
 
