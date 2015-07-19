@@ -128,7 +128,7 @@ class TestApi(TestCase):
 
     def test_create_location(self):
         with self.app.test_client() as c:
-            data = {'lat': 0, 'lon': 0, 'records': []}
+            data = {'lat': 45, 'lon': -90, 'records': []}
             headers = [('Content-Type', 'application/json')]
 
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
@@ -137,8 +137,9 @@ class TestApi(TestCase):
             response_data = json.loads(get.data)
             for key, val in data.iteritems():
                 self.assertEqual(val, response_data[key])
-
+            print response_data
             self.assertEqual(-1.0, response_data['bearing'])
+            self.assertEqual('North America', response_data['continent'])
 
     def test_create_location_with_user(self):
         with self.app.test_client() as c:
