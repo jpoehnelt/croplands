@@ -57,7 +57,7 @@ def register():
         token = generate_token((user.email, user.custom_data['email_verification_token']),
                                current_app.config['SECRET_KEY'])
         # Send Email #
-        link = 'http://www.croplands.org/account/confirm?t=' + token
+        link = 'https://croplands.org/app/a/confirm?t=' + token
         send_confirmation_email(link, user.email)
         return JSONResponse(status_code=201, description='User created')
 
@@ -90,7 +90,7 @@ def forgot_password():
         # send email
         token = generate_token(user.email, current_app.config['SECRET_KEY'])
         # Send Email #
-        link = 'http://www.croplands.org/account/reset?token=' + token
+        link = 'https://croplands.org/app/a/reset?token=' + token
         send_reset_email(link, user.email)
 
     return jsonify({'status_code': 200, 'description': 'Email sent'}), 200
