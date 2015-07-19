@@ -8,32 +8,33 @@ gunicorn
 Flask==0.10.1
 
 # Flask Extensions
-Flask-Cache==0.13.1
-Flask-Compress==1.0.2
+Flask-Cache
+Flask-Compress
 Flask-Migrate
 Flask-Restless==0.16.0
-Flask-SQLAlchemy==1.0
-Flask-Script==2.0.5
-Flask-JWT>=0.2.0
+Flask-SQLAlchemy
+Flask-Script
+Flask-JWT
 Flask-Testing
-Flask-Limiter==0.7.9
-Flask-Celery-Helper==1.1.0
+Flask-Limiter
+Flask-Celery-Helper
 Flask-Mail
 
 # Other
 passlib
 earthengine-api
 google-api-python-client
-celery==3.1.17
-redis>=2.10.3
-boto==2.32.1
-requests==2.3.0
-Pillow==2.8.1
-Shapely==1.5.6
+uritemplate
+celery
+redis
+boto
+requests
+Pillow
+Shapely
 psycopg2
-#beautifulsoup4==4.3.2
-pyproj==1.9.4
+beautifulsoup4
+pyproj
 geopy
-
+six
 newrelic
 #locustio
