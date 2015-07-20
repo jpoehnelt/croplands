@@ -164,6 +164,7 @@ class User(db.Model):
         """
 
         return {
+            'id': self.id,
             'first': self.first,
             'last': self.last,
             'email': self.email,
