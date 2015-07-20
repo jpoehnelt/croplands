@@ -15,7 +15,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def beat():
-    celery_args = ['celery', 'beat', '-C', '--pidfile=']
+    celery_args = ['celery', 'beat', '-C', '--pidfile=', '-s','/home/ubuntu/celerybeat.db','-l','debug']
     with manager.app.app_context():
         return celery_main(celery_args)
 

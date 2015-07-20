@@ -103,17 +103,17 @@ class Production(Default):
     CELERYBEAT_SCHEDULE = {
         'build_fusion_tables': {
             'task': 'gfsad.tasks.records.build_fusion_tables',
-            'schedule': timedelta(minutes=30),
+            'schedule': timedelta(hours=6),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
         'build_static_records': {
             'task': 'gfsad.tasks.records.build_static_records',
-            'schedule': timedelta(minutes=5),
+            'schedule': timedelta(minutes=15),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
         'build_classification_results': {
             'task': 'gfsad.tasks.classifications.build_classifications_result',
-            'schedule': timedelta(days=1),
+            'schedule': timedelta(hours=12),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
     }
