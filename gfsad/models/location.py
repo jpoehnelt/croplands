@@ -53,10 +53,10 @@ class Location(db.Model):
     def __init__(self, *args, **kwargs):
         super(Location, self).__init__(*args, **kwargs)
 
-        if 'use_verification' not in kwargs and 'use_verification_locked' not in kwargs:
-            self.use_verification = random.choice([True, False])
-            if self.use_verification:
-                self.use_verification_locked = random.choice([True, False])
+        if 'use_validation' not in kwargs and 'use_validation_locked' not in kwargs:
+            self.use_validation = random.choice([True, False, False])
+            if self.use_validation:
+                self.use_validation_locked = random.choice([True, False])
 
 
 
