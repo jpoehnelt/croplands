@@ -78,9 +78,9 @@ class Location(db.Model):
 
         First finds all nearby samples within a specific radius.
 
-        Next it determines the use of its neighbors. If there is no single use, do not accept
-        the sample and review at a later time. If there is a single use, reassign the current
-        sample to the same use.
+        Next it determines the use of its neighbors. If there is no single use but a mix of uses,
+        do not accept the sample and review at a later time. If there is a single use, reassign
+        the current sample to the same use.
 
         Finally clean up the validation_locked setting if necessary.
 
@@ -93,19 +93,18 @@ class Location(db.Model):
         assert isinstance(self.lat, (int, long, float)), 'lat not number'
         assert isinstance(self.lon, (int, long, float)), 'lon not number'
 
+        # get nearby locations to this location
         nearby_locations = Location.within(self.lat, self.lon, threshold)
 
-        # check for nearby locations
+        # if there are nearby locations
         if len(nearby_locations) > 0:
             use_validation = 0
             use_training = 0
 
-            # get majority use, this should almost always be one number at zero and is more of 
-            # a check to prevent any issues in the future. could make the difference calculation 
-            # stricter to throw an exception if necessary
+            # get neighbors use
             for location in nearby_locations:
 
-                # don't worry about these
+                # don't worry about these locations
                 if location.use_invalid or location.use_deleted:
                     continue
 
@@ -116,15 +115,14 @@ class Location(db.Model):
 
             # check if there is a mix of uses nearby
             if abs(use_training - use_validation) == len(nearby_locations):
-                # apply the majority class
-                if (use_validation > use_training) != self.use_validation:
-                    self.use_validation = use_validation > use_training
+                # apply the use to this sample
+                self.use_validation = use_validation > use_training
 
                 # after change clear validation_locked if use is for training
                 if not self.use_validation:
                     self.use_validation_locked = False
 
-            # else mark it as deleted for now
+            # else if not all one use mark it as invalid
             # todo what is the best way to handle this? send message for review
             else:
                 self.use_invalid = True
