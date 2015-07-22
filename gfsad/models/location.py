@@ -1,7 +1,9 @@
 from gfsad.models import db
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
+from sqlalchemy.sql import text
 import random
+
 
 class Location(db.Model):
     """
@@ -31,9 +33,10 @@ class Location(db.Model):
     lat = db.Column(db.Float, nullable=False, index=True)
     lon = db.Column(db.Float, nullable=False, index=True)
 
-    #offset
-    bearing = db.Column(db.Float, default=-1) # bearing from lat lon to center of field from lat lon
-    distance = db.Column(db.Integer) # distance along bearing to center of field from lat lon
+    # offset
+    #  bearing from lat lon to center of field from lat lon
+    bearing = db.Column(db.Float, default=-1)
+    distance = db.Column(db.Integer)  # distance along bearing to center of field from lat lon
     accuracy = db.Column(db.Integer)
 
     country = db.Column(db.String)
@@ -49,8 +52,17 @@ class Location(db.Model):
     use_validation_locked = db.Column(db.Boolean, default=False, index=True)
     use_private = db.Column(db.Boolean, default=False, index=True)
     use_deleted = db.Column(db.Boolean, default=False)
+    use_invalid = db.Column(db.Boolean, default=False)
+    use_invalid_reason = db.Column(db.String)
 
     def __init__(self, *args, **kwargs):
+        # convert to float if str
+        self.lat = float(kwargs['lat'])
+        self.lon = float(kwargs['lon'])
+
+        assert abs(self.lat) < 90, 'lat exceeds bounds'
+        assert abs(self.lon) < 180, 'lon exceeds bounds'
+
         super(Location, self).__init__(*args, **kwargs)
 
         if 'use_validation' not in kwargs and 'use_validation_locked' not in kwargs:
@@ -58,7 +70,88 @@ class Location(db.Model):
             if self.use_validation:
                 self.use_validation_locked = random.choice([True, False])
 
+        self.check_neighbor_use()
 
+    def check_neighbor_use(self, threshold=2000):
+        """
+        Requires nearby samples to be used either for validation or training and not both.
+
+        First finds all nearby samples within a specific radius.
+
+        Next it determines the use of its neighbors. If there is no single use, do not accept
+        the sample and review at a later time. If there is a single use, reassign the current
+        sample to the same use.
+
+        Finally clean up the validation_locked setting if necessary.
+
+        If failure to find single use, mark as invalid to trigger later review.
+
+        :param threshold: Integer in meters
+        :return: None
+        """
+        assert threshold > 0
+        assert isinstance(self.lat, (int, long, float)), 'lat not number'
+        assert isinstance(self.lon, (int, long, float)), 'lon not number'
+
+        nearby_locations = Location.within(self.lat, self.lon, threshold)
+
+        # check for nearby locations
+        if len(nearby_locations) > 0:
+            use_validation = 0
+            use_training = 0
+
+            # get majority use, this should almost always be one number at zero and is more of 
+            # a check to prevent any issues in the future. could make the difference calculation 
+            # stricter to throw an exception if necessary
+            for location in nearby_locations:
+
+                # don't worry about these
+                if location.use_invalid or location.use_deleted:
+                    continue
+
+                if location.use_validation:
+                    use_validation += 1
+                else:
+                    use_training += 1
+
+            # check if there is a mix of uses nearby
+            if abs(use_training - use_validation) == len(nearby_locations):
+                # apply the majority class
+                if (use_validation > use_training) != self.use_validation:
+                    self.use_validation = use_validation > use_training
+
+                # after change clear validation_locked if use is for training
+                if not self.use_validation:
+                    self.use_validation_locked = False
+
+            # else mark it as deleted for now
+            # todo what is the best way to handle this? send message for review
+            else:
+                self.use_invalid = True
+                self.use_invalid_reason = '[Neighbor sample use is mix of training and validation]'
+
+    @classmethod
+    def within(cls, lat, lon, meters):
+        """
+        Finds all samples within a radius of x meters from lat lon pair.
+        :param lat:
+        :param lon:
+        :param meters:
+        :return:
+        """
+        assert isinstance(meters, (int, long, float)), 'lat not number'
+        assert isinstance(lat, (int, long, float)), 'lat not number'
+        assert isinstance(lon, (int, long, float)), 'lon not number'
+        assert meters > 0
+        assert abs(lat) < 90, 'lat exceeds bounds'
+        assert abs(lon) < 180, 'lon exceeds bounds'
+
+        sql = "SELECT * FROM location "
+        sql += "WHERE st_distance_sphere(st_makepoint(lon, lat), st_makepoint(%f,%f)) " % (
+        float(lon), float(lat))
+        sql += "< %d " % meters
+
+        return db.session.query(Location).from_statement(text(sql)).all()
 
 
 class Image(db.Model):
@@ -118,4 +211,4 @@ class ImageClassificationProvider(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_captured = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     ip = db.Column(db.String, nullable=False)
-    level = db.Column(db.String) # self declared expertise level
+    level = db.Column(db.String)  # self declared expertise level

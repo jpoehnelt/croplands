@@ -4,6 +4,7 @@ from gfsad import create_app, limiter
 from gfsad.models import Location, db, TimeSeries, User
 import random
 from sqlalchemy.exc import IntegrityError
+from gfsad.utils.geo import get_destination
 
 
 class TestDatabase(TestCase):
@@ -29,7 +30,7 @@ class TestDatabase(TestCase):
 
     def test_time_series(self):
         with self.app.app_context():
-            location = Location(lat='0.00', lon='0.00')
+            location = Location(lat=0.00, lon=0.00)
             db.session.add(location)
             db.session.commit()
 
@@ -63,13 +64,67 @@ class TestDatabase(TestCase):
                 'last': 'Last'
             }
             user = User(**data)
-            assert(user.email.islower())
+            assert (user.email.islower())
 
             user = User.create(**data)
-            assert(user.email.islower())
+            assert (user.email.islower())
 
             user = User.from_email(data['email'])
             self.assertIsNotNone(user)
 
             user = User.from_login(data['email'], data['password'])
             self.assertIsNotNone(user)
+
+    def test_location_within(self):
+        with self.app.app_context():
+            l1 = Location(lat=40, lon=-110)
+            l2 = Location(lat=40.0000000001, lon=-110)
+            l3 = Location(lat=40.9999999999, lon=-110.99999999999)
+            db.session.add(l1)
+            db.session.add(l2)
+            db.session.add(l3)
+            db.session.commit()
+
+            self.assertEqual(len(Location.within(l1.lat, l1.lon, 1)), 2)
+
+    def test_location_nearby_mixed_use(self):
+        with self.app.app_context():
+            l1 = Location(lat=40, lon=-110, use_validation=True)
+            db.session.add(l1)
+            db.session.commit()
+
+            l2 = Location(lat=40.0000000001, lon=-110, use_validation=False)
+            db.session.add(l2)
+            db.session.commit()
+
+            self.assertEqual(l1.use_validation, l2.use_validation)
+
+            pt = get_destination([l1.lat, l1.lon], 90, 3)  # in km
+            l3 = Location(lat=pt[0], lon=pt[1], use_validation=False)
+            db.session.add(l3)
+            db.session.commit()
+
+            self.assertEqual(False, l3.use_validation)
+
+    def test_location_nearby_mixed_use_three_samples(self):
+        with self.app.app_context():
+            l1 = Location(lat=40, lon=-110, use_validation=True)
+            db.session.add(l1)
+            db.session.commit()
+
+            pt1 = get_destination([l1.lat, l1.lon], 90, 3)  # in km
+            l2 = Location(lat=pt1[0], lon=pt1[1], use_validation=False)
+            db.session.add(l2)
+            db.session.commit()
+
+            pt2 = get_destination([l1.lat, l1.lon], 90, 1.5)  # in km
+
+            # make sure we are in the failing condition with pt2
+            self.assertEqual(2, len(Location.within(pt2[0], pt2[1], 2000)))
+            l3 = Location(lat=pt2[0], lon=pt2[1], use_validation=False)
+            db.session.add(l3)
+            db.session.commit()
+
+            self.assertEqual(True, l3.use_invalid)
+            print l3.__dict__
+
