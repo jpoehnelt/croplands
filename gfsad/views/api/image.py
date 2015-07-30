@@ -2,7 +2,7 @@ from gfsad import api
 from gfsad.models import Image, ImageClassification
 from gfsad.exceptions import ImageProcessingError
 from gfsad.utils.s3 import upload_image
-from processors import api_roles, add_user_to_posted_data
+from processors import api_roles, add_user_to_posted_data, debug_post
 import uuid
 from flask import request, current_app
 from gfsad.tasks.classifications import compute_image_classification_statistics, \
@@ -53,7 +53,7 @@ def create(app):
                    methods=['GET', 'PATCH', 'POST', 'DELETE'],
                    preprocessors={
                        'POST': [add_user_to_posted_data,
-                                check_for_base64],
+                                check_for_base64, debug_post],
                        'PATCH_SINGLE': [api_roles(['team', 'admin'])],
                        'PATCH_MANY': [api_roles('admin')]
                    },

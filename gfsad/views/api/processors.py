@@ -25,6 +25,7 @@ def add_user_to_posted_data(data=None, **kwargs):
     """
     user = load_user()
     if user is 'anonymous':
+        print 'Anonymous User'
         return
 
     data['user_id'] = user.id
@@ -54,3 +55,6 @@ def remove_relations(data=None, **kwargs):
 
     for key in keys_to_delete:
         del data[key]
+
+def debug_post(data=None, **kwargs):
+    print data

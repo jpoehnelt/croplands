@@ -1,6 +1,6 @@
 from gfsad import api
 from gfsad.models import Location
-from processors import api_roles, add_user_to_posted_data, remove_relations
+from processors import api_roles, add_user_to_posted_data, remove_relations, debug_post
 from records import save_record_state_to_history
 from gfsad.tasks.records import get_ndvi, build_static_records
 from gfsad.utils.countries import find_country
@@ -69,7 +69,7 @@ def create(app):
                    collection_name='locations',
                    methods=['GET', 'POST', 'PATCH', 'DELETE'],
                    preprocessors={
-                       'POST': [change_field_names, add_user_to_posted_data, get_country],
+                       'POST': [change_field_names, add_user_to_posted_data, get_country, debug_post],
                        'PATCH_SINGLE': [api_roles(['team', 'admin']), remove_relations],
                        'PATCH_MANY': [api_roles('admin'), remove_relations],
                        'DELETE': [api_roles('admin')]

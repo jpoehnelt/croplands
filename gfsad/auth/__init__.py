@@ -66,9 +66,10 @@ def load_user(*args, **kwargs):
     if current_user._get_current_object() is None:
         try:
             verify_jwt()
-        except:
+        except Exception as e:
+            print e.__dict__
             return 'anonymous'
-    return current_user
+    return current_user._get_current_object()
 
 
 def allowed_roles(role):
