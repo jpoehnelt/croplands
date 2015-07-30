@@ -69,9 +69,11 @@ def load_user(*args, **kwargs):
             verify_jwt()
         except Exception as e:
             print "Verify Error: %s" % e.__dict__
+            print "Current User: " + str(current_user._get_current_object()) + " Header: " + str(request.headers.get('Authorization', None)) + " Request Type: " + request.method
             return 'anonymous'
-        finally:
-            print "Current User: " + current_user._get_current_object() + " Header: " + request.headers.get('Authorization', None) + " Request Type: " + request.method
+
+    print "Current User: " + str(current_user._get_current_object()) + " Header: " + str(request.headers.get('Authorization', None)) + " Request Type: " + request.method
+
     return current_user._get_current_object()
 
 
