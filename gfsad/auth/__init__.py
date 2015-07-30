@@ -63,12 +63,15 @@ def load_user(*args, **kwargs):
     :param kwargs:
     :return: None
     """
+
     if current_user._get_current_object() is None:
         try:
             verify_jwt()
         except Exception as e:
-            print "Header: " + request.headers.get('Authorization', None) + " Request Type: " + request.method + " error: " + e.__dict__
+            print "Verify Error: %s" % e.__dict__
             return 'anonymous'
+        finally:
+            print "Current User: " + current_user._get_current_object() + " Header: " + request.headers.get('Authorization', None) + " Request Type: " + request.method
     return current_user._get_current_object()
 
 
