@@ -264,39 +264,3 @@ class TestAuthViews(TestCase):
             response.json = json.loads(response.data)
             self.assertEqual(response.status_code, 401)
             self.assertEqual(response.json['status_code'], 401)
-
-    def test_protected_no_token(self):
-        with self.app.test_client() as c:
-            response = c.get('/auth/protected')
-            response.json = json.loads(response.data)
-            self.assertEqual(response.status_code, 401)
-            self.assertEqual(response.json['status_code'], 401)
-            self.assertEqual(response.json['error'], 'Authorization Required')
-
-    def test_protected_with_token(self):
-        with self.app.test_client() as c:
-            me = {'first': 'Justin', 'last': 'Poehnelt', 'affiliation': 'USGS',
-                  'password': 'woot1LoveCookies!', 'email': 'jpoehnelt+test@usgs.gov'}
-            headers = [('Content-Type', 'application/json')]
-
-            c.post('/auth/register', headers=headers, data=json.dumps(me))
-            # verify user
-            user = User.from_email(me['email'])
-
-            # login
-            response = c.post('/auth/login', headers=headers,
-                              data=json.dumps({'email': me['email'], 'password': me['password']}))
-            response.json = json.loads(response.data)
-            self.assertIn('data', response.json)
-            self.assertIn('token', response.json['data'])
-
-            token = response.json['data']['token']
-
-            headers = [('Content-Type', 'application/json'), ('authorization', 'bearer ' + token)]
-
-            response = c.get('/auth/protected', headers=headers)
-            response.json = json.loads(response.data)
-            self.assertEqual(response.status_code, 200)
-
-
-

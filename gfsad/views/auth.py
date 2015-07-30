@@ -37,12 +37,6 @@ def required_fields(*fields):
     return wrapper
 
 
-@auth.route('/protected')
-@jwt_required()
-def protected():
-    return JSONResponse(status_code=200, description='Success')
-
-
 @auth.route('/register', methods=['POST'])
 @required_fields('email', 'first', 'last', 'password')
 @limiter.limit("5 per hour", methods=['POST'], error_message='Try again later.')
