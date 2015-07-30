@@ -1,6 +1,6 @@
 from gfsad import api
 from gfsad.exceptions import Unauthorized
-from gfsad.models import RecordRating, User
+from gfsad.models import RecordRating, User, db
 from gfsad.auth import load_user
 from processors import (
     api_roles,
@@ -8,15 +8,16 @@ from processors import (
 )
 from gfsad.tasks.records import sum_ratings_for_record
 
-def rating_multiplier(data=None, **kwargs):
+
+def rating_adjuster(data=None, **kwargs):
     """
-    This function can be used to give more weight for ratings according to role.
+    Adjusts the rating to a specific range.
     :param data:
     :param kwargs:
     :return:
     """
-    user = load_user()
-    data['rating'] *= User.ROLES.index(user.role)
+    # force rating to -1 to 1 range
+    data['rating'] = min(1, max(-1, data['rating']))
 
 
 def cannot_edit_other_user_rating(data=None, **kwargs):
@@ -43,23 +44,40 @@ def calculate_rating(result=None, **kwargs):
     # sum_ratings_for_record.delay(result['record_id']) #async with celery
 
 
+def delete_existing_rating_from_user_for_record(data=None, **kwargs):
+    """
+    Deletes the existing rating for the record from the user if it exists.
+    :param data:
+    :param kwargs:
+    :return: None
+    """
+    print data
+    record = RecordRating.query.filter_by(record_id=data['record_id'],
+                                          user_id=data['user_id']).first()
+    if record is not None:
+        db.session.delete(record)
+        db.session.commit()
+
+
 def create(app):
     api.create_api(RecordRating,
                    app=app,
                    collection_name='ratings',
-               methods=['GET', 'POST', 'PATCH', 'PUT'],
-               preprocessors={
-                   'POST': [api_roles(['registered', 'partner', 'team', 'admin']),
-                            add_user_to_posted_data],
-                   'PATCH_SINGLE': [api_roles(['registered', 'partner', 'team', 'admin']),
-                                    cannot_edit_other_user_rating],
-                   'PATCH_MANY': [api_roles('admin')],
-                   'DELETE': [api_roles('admin')]
-               },
-               postprocessors={
-                   'POST': [calculate_rating],
-                   'PATCH_SINGLE': [calculate_rating],
-                   'PATCH_MANY': [],
-                   'DELETE': []
-               }
-)
+                   methods=['GET', 'POST', 'PATCH', 'PUT'],
+                   preprocessors={
+                       'POST': [api_roles(['registered', 'partner', 'team', 'admin']),
+                                add_user_to_posted_data,
+                                delete_existing_rating_from_user_for_record,
+                                rating_adjuster],
+                       'PATCH_SINGLE': [api_roles(['registered', 'partner', 'team', 'admin']),
+                                        cannot_edit_other_user_rating],
+                       'PATCH_MANY': [api_roles('admin')],
+                       'DELETE': [api_roles('admin')]
+                   },
+                   postprocessors={
+                       'POST': [calculate_rating],
+                       'PATCH_SINGLE': [calculate_rating],
+                       'PATCH_MANY': [],
+                       'DELETE': []
+                   }
+    )
