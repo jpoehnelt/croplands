@@ -74,7 +74,7 @@ class Development(Default):
     ENV = 'DEVELOPMENT'
     DEBUG = True
 
-    SECRET_KEY = os.urandom(24)
+    SECRET_KEY = os.environ.get('SECRET')
 
     # REDIS
     REDISCLOUD_URL = 'redis://127.0.0.1:6379'
