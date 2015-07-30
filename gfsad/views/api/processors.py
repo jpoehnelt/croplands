@@ -24,7 +24,9 @@ def add_user_to_posted_data(data=None, **kwargs):
     :param kwargs:
     :return: None
     """
+
     user = load_user()
+    print request.method + str(user)
     if user is 'anonymous':
         print 'Anonymous User'
         return
@@ -49,6 +51,8 @@ def remove_relations(data=None, **kwargs):
     :param kwargs:
     :return: None
     """
+    if request.method == 'OPTIONS':
+        return
     keys_to_delete = []
     for key, val in data.iteritems():
         if type(data[key]) is list:
