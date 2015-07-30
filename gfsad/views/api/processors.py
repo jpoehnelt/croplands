@@ -1,3 +1,4 @@
+from flask import request
 from gfsad.exceptions import Unauthorized
 from gfsad.utils.s3 import upload_image
 from gfsad.tasks.records import get_ndvi
@@ -58,3 +59,4 @@ def remove_relations(data=None, **kwargs):
 
 def debug_post(data=None, **kwargs):
     print data
+    print request.headers
