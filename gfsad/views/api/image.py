@@ -64,7 +64,7 @@ def create(app):
                    collection_name='image_classifications',
                    methods=['POST'],
                    preprocessors={
-                       'POST': [insert_ip]
+                       'POST': [insert_ip, add_user_to_posted_data]
                    },
                    postprocessors={
                        'POST': [update_image_classification_statistics]

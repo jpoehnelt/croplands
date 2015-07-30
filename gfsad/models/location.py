@@ -199,7 +199,7 @@ class ImageClassification(db.Model):
     classification = db.Column(db.Integer, nullable=False)
     date_classified = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     image = db.Column(db.Integer, ForeignKey('image.id'))
-    user = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('user.id'))
     ip = db.Column(db.String, nullable=False)
 
 

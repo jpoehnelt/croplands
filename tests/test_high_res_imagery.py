@@ -1,12 +1,10 @@
-try:
-    from gfsad import create_app, db, limiter
-    import unittest
-    from gfsad.tasks.classifications import build_classifications_result, \
-        compute_image_classification_statistics
-    import json
-except ImportError as e:
-    print e
-    raise e
+from gfsad import create_app, db, limiter
+from gfsad.models import User
+import unittest
+from gfsad.tasks.classifications import build_classifications_result, \
+    compute_image_classification_statistics
+import json
+
 
 class TestHighResImage(unittest.TestCase):
     app = None
@@ -68,48 +66,46 @@ class TestHighResImage(unittest.TestCase):
                 self.assertEqual(response.status_code, 201)
 
     def test_classification_results(self):
-        with self.app.app_context():
-            with self.app.test_client() as c:
-                headers = [('Content-Type', 'application/json')]
-                data = {'lat': 35.312, 'lon': -111.112}
+        with self.app.test_client() as c:
+            headers = [('Content-Type', 'application/json')]
+            data = {'lat': 35.312, 'lon': -111.112}
 
-                post = c.post('/api/locations', headers=headers, data=json.dumps(data))
-                response = json.loads(post.data)
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            response = json.loads(post.data)
 
-                image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0,
-                              'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
-                post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
+            image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0,
+                          'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
+            post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
 
-                headers = [('Content-Type', 'application/json')]
-                response = c.get('/api/images', headers=headers)
+            response = c.get('/api/images', headers=headers)
 
-                image_id = json.loads(response.data)['objects'][0]['id']
-                data = {
-                    "image": image_id,
-                    "classification": 3
-                }
+            image_id = json.loads(response.data)['objects'][0]['id']
+            data = {
+                "image": image_id,
+                "classification": 3
+            }
 
-                response = c.post('/api/image_classifications', headers=headers,
-                                  data=json.dumps(data))
-                data = {
-                    "image": image_id,
-                    "classification": 3
-                }
+            response = c.post('/api/image_classifications', headers=headers,
+                              data=json.dumps(data))
+            data = {
+                "image": image_id,
+                "classification": 3
+            }
 
-                response = c.post('/api/image_classifications', headers=headers,
-                                  data=json.dumps(data))
-                data = {
-                    "image": image_id,
-                    "classification": 3
-                }
+            response = c.post('/api/image_classifications', headers=headers,
+                              data=json.dumps(data))
+            data = {
+                "image": image_id,
+                "classification": 3
+            }
 
-                response = c.post('/api/image_classifications', headers=headers,
-                                  data=json.dumps(data))
-                print response.data
+            response = c.post('/api/image_classifications', headers=headers,
+                              data=json.dumps(data))
+            print response.data
 
-                self.assertEqual(response.status_code, 201)
-                compute_image_classification_statistics(image_id)
-                build_classifications_result()
+            self.assertEqual(response.status_code, 201)
+            compute_image_classification_statistics(image_id)
+            build_classifications_result()
 
     # def test_get_google_street_view_image(self):
     #     with self.app.app_context():
@@ -126,4 +122,46 @@ class TestHighResImage(unittest.TestCase):
 
             # polyline = get_directions(origin_lat, origin_lon, destination_lat, destination_lon)
 
+    def test_classification_user(self):
+        with self.app.test_client() as c:
+            me = {'first': 'Justin', 'last': 'Poehnelt', 'affiliation': 'USGS',
+                  'password': 'woot1LoveCookies!', 'email': 'jpoehnelt+test@usgs.gov'}
+            headers = [('Content-Type', 'application/json')]
 
+            c.post('/auth/register', headers=headers, data=json.dumps(me))
+            # verify user
+            user = User.from_email(me['email'])
+
+            # login
+            response = c.post('/auth/login', headers=headers,
+                              data=json.dumps({'email': me['email'], 'password': me['password']}))
+            response.json = json.loads(response.data)
+            self.assertIn('data', response.json)
+            self.assertIn('token', response.json['data'])
+
+            token = response.json['data']['token']
+
+            headers = [('Content-Type', 'application/json'), ('authorization', 'bearer ' + token)]
+            data = {'lat': 35.312, 'lon': -111.112}
+
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            response = json.loads(post.data)
+
+            image_data = {'date_acquired': '2015-01-01', 'lat': 0, 'lon': 0,
+                          'location_id': response['id'], 'bearing': 0, 'url': 'asdf'}
+            post = c.post('/api/images', headers=headers, data=json.dumps(image_data))
+
+            response = c.get('/api/images', headers=headers)
+
+            image_id = json.loads(response.data)['objects'][0]['id']
+            data = {
+                "image": image_id,
+                "classification": 3
+            }
+
+            response = c.post('/api/image_classifications', headers=headers,
+                              data=json.dumps(data))
+
+            classification = json.loads(response.data)
+            self.assertIsNotNone(classification['user_id'])
+            self.assertEqual(classification['user_id'], 1)

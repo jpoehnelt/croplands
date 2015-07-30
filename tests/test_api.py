@@ -379,9 +379,9 @@ class TestApi(TestCase):
             data_rating = {'rating': 1, 'record_id': record['id']}
             post = c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
 
-            # try a duplicate
+            # try a duplicate, should replace old
             post = c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
-            self.assertEqual(post.status_code, 400)
+            self.assertEqual(post.status_code, 201)
 
     def test_record_update_rating(self):
         with self.app.test_client() as c:
