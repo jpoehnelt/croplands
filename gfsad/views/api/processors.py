@@ -59,4 +59,4 @@ def remove_relations(data=None, **kwargs):
 
 def debug_post(data=None, **kwargs):
     print data
-    print request.headers
+    print "authorization header" + str(request.headers.get('Authorization', None))
