@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, request
 from flask_jwt import verify_jwt, current_user
 from itsdangerous import URLSafeTimedSerializer
 from datetime import timedelta
@@ -67,7 +67,7 @@ def load_user(*args, **kwargs):
         try:
             verify_jwt()
         except Exception as e:
-            print e.__dict__
+            print "Header: " + request.headers.get('Authorization', None) + " Request Type: " + request.method + " error: " + e.__dict__
             return 'anonymous'
     return current_user._get_current_object()
 
