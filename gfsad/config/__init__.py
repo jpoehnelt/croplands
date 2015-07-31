@@ -90,7 +90,7 @@ class Development(Default):
 class Production(Default):
     ENV = 'PRODUCTION'
 
-    SECRET_KEY = os.urandom(24)
+    SECRET_KEY = os.environ.get('SECRET')
 
     # REDIS
     REDISCLOUD_URL = os.environ.get('REDISCLOUD_URL')
