@@ -50,7 +50,7 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] = request.headers.get(
         'Access-Control-Request-Headers', '')
-    response.headers['Access-Control-Allow-Methods'] = request.headers.get(
+    response.headers['Access-Control-Allow-Method'] = request.headers.get(
         'Access-Control-Request-Methods', '')
 
     # Do nothing for post, patch, delete etc..
