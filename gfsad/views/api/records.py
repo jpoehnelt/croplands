@@ -87,7 +87,7 @@ def create(app):
                    preprocessors={
                        'POST': [add_user_to_posted_data],
                        'PATCH_SINGLE': [api_roles(['partner', 'team', 'admin']),
-                                        remove_relations],
+                                        remove_relations, add_user_to_posted_data],
                        'PATCH_MANY': [api_roles('admin'), remove_relations],
                        'DELETE': [api_roles('admin')]
                    },
