@@ -96,7 +96,7 @@ def build_fusion_tables():
         else:
             writer_training.writerow(row[0:-2])
 
-    replace_rows('1LCajjQj_fH4KQDFqTfHGlVvmHt6BmhWBYhbXuFEA',training, startLine=1)
+    replace_rows('1C_gFvQmd3AGtB0Q0XgnKk5ESUARSH79FB9Un8sF2',training, startLine=1)
     replace_rows('12WLGpk7o1ic_j88NQfmrUEILVWDlrJaqZCAqEDeo',validation, startLine=1)
     replace_rows('1jQjTg7zXhwmLGJdfPCavgdifnyNTqJGi3Bn3RwWF',public, startLine=1)
 
