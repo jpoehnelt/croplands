@@ -139,7 +139,6 @@ class TestApi(TestCase):
                 self.assertEqual(val, response_data[key])
             print response_data
             self.assertEqual(-1.0, response_data['bearing'])
-            self.assertEqual('North America', response_data['continent'])
 
     def test_create_location_with_user(self):
         with self.app.test_client() as c:
