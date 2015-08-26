@@ -3,6 +3,7 @@ from gfsad import celery
 from gfsad.models import db, TimeSeries
 from gfsad.utils import split_list
 from gfsad.utils.fusion import replace_rows
+from gfsad.utils.mappings import get_crop_label, get_intensity_label, get_land_cover_label, get_water_label
 import boto
 from boto.s3.key import Key
 import datetime
@@ -15,6 +16,13 @@ import csv
 def status(so_far, total):
     print '%d bytes transferred out of %d' % (so_far, total)
 
+def convert_to_labels(row):
+    row['water_source'] = get_water_label(row['water_source'])
+    row['crop_primary'] = get_crop_label(row['crop_primary'])
+    row['land_cover'] = get_land_cover_label(row['land_cover'])
+    row['intensity'] = get_intensity_label(row['intensity'])
+
+    return row
 
 @celery.task()
 def get_ndvi(id, lat, lon):
@@ -71,30 +79,30 @@ def build_fusion_tables():
           ON location.id = record.location_id
           """
 
-
     result = db.engine.execute(cmd)
     columns = result.keys()
-    all = [row for row in result]
+
+    all_results = [convert_to_labels(dict(row.items())) for row in result]
 
     training = StringIO.StringIO()
     validation = StringIO.StringIO()
     public = StringIO.StringIO()
 
-    writer_training = csv.writer(training)
-    writer_validation = csv.writer(validation)
-    writer_public = csv.writer(public)
+    writer_training = csv.DictWriter(training, fieldnames=columns[0:-2], extrasaction='ignore')
+    writer_validation = csv.DictWriter(validation, fieldnames=columns[0:-2], extrasaction='ignore')
+    writer_public = csv.DictWriter(public, fieldnames=columns[0:-2], extrasaction='ignore')
 
-    writer_training.writerow(columns[0:-2])
-    writer_validation.writerow(columns[0:-2])
-    writer_public.writerow(columns[0:-2])
+    writer_training.writeheader()
+    writer_validation.writeheader()
+    writer_public.writeheader()
 
-    for row in all:
+    for row in all_results:
         if not row['use_private']:
-            writer_public.writerow(row[0:-2])
+            writer_public.writerow(row)
         if row['use_validation']:
-            writer_validation.writerow(row[0:-2])
+            writer_validation.writerow(row)
         else:
-            writer_training.writerow(row[0:-2])
+            writer_training.writerow(row)
 
     replace_rows('1C_gFvQmd3AGtB0Q0XgnKk5ESUARSH79FB9Un8sF2',training, startLine=1)
     replace_rows('12WLGpk7o1ic_j88NQfmrUEILVWDlrJaqZCAqEDeo',validation, startLine=1)
