@@ -1,3 +1,4 @@
+from werkzeug.exceptions import BadRequest
 from gfsad.models import db
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
@@ -35,6 +36,11 @@ class Record(db.Model):
     date_created = db.Column(db.DateTime, default=db.func.now())
     date_updated = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
+    SOURCE_TYPE_CHOICES = ['ground', 'derived', 'unknown']
+    source_id = db.Column(db.String)
+    source_type = db.Column(db.String, nullable=False)
+    source_description = db.Column(db.String)
+
     # fields that vary by year
     land_use_type = db.Column(db.Integer, default=0)
     intensity = db.Column(db.Integer, default=0)
@@ -53,6 +59,14 @@ class Record(db.Model):
     # sub models
     history = relationship("RecordHistory", cascade="all, delete-orphan")
     ratings = relationship("RecordRating", cascade="all, delete-orphan")
+
+    def __init__(self, *args, **kwargs):
+        if 'source_type' not in kwargs:
+            kwargs['source_type'] = 'unknown'
+        if kwargs['source_type'] not in Record.SOURCE_TYPE_CHOICES:
+            raise BadRequest(description='Valid options for source_type include: ' + str(Record.SOURCE_TYPE_CHOICES))
+
+        super(Record, self).__init__(*args, **kwargs)
 
 
 class RecordHistory(db.Model):

@@ -292,6 +292,35 @@ class TestApi(TestCase):
             post = c.post('/api/records', headers=headers, data=json.dumps(data))
             self.assertEqual(post.status_code, 201)
 
+    def test_record_create_source(self):
+        with self.app.test_client() as c:
+            data = {'lat': 0, 'lon': 0, 'records': []}
+            headers = [('Content-Type', 'application/json')]
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            location = json.loads(post.data)
+
+            data = {'year': 2014, 'month': 1, 'location_id': location['id']}
+            post = c.post('/api/records', headers=headers, data=json.dumps(data))
+            self.assertEqual(post.status_code, 201)
+            record = json.loads(post.data)
+            self.assertEqual(record['source_type'], 'unknown')
+
+            data = {'year': 2013, 'month': 1, 'location_id': location['id'], 'source_type': 'derived'}
+            post = c.post('/api/records', headers=headers, data=json.dumps(data))
+            self.assertEqual(post.status_code, 201)
+            record = json.loads(post.data)
+            self.assertEqual(record['source_type'], 'derived')
+
+            data = {'year': 2012, 'month': 1, 'location_id': location['id'], 'source_type': 'ground'}
+            post = c.post('/api/records', headers=headers, data=json.dumps(data))
+            self.assertEqual(post.status_code, 201)
+            record = json.loads(post.data)
+            self.assertEqual(record['source_type'], 'ground')
+
+            data = {'year': 2011, 'month': 1, 'location_id': location['id'], 'source_type': 'this is not a valid source type'}
+            post = c.post('/api/records', headers=headers, data=json.dumps(data))
+            self.assertEqual(post.status_code, 400)
+
     def test_record_create_without_location(self):
         with self.app.test_client() as c:
             data = {'year': 2014, 'month': 1}
