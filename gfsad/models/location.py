@@ -33,6 +33,9 @@ class Location(db.Model):
     lat = db.Column(db.Float, nullable=False, index=True)
     lon = db.Column(db.Float, nullable=False, index=True)
 
+    original_lat = db.Column(db.Float, nullable=False)
+    original_lon = db.Column(db.Float, nullable=False)
+
     # offset
     #  bearing from lat lon to center of field from lat lon
     bearing = db.Column(db.Float, default=-1)
@@ -59,6 +62,9 @@ class Location(db.Model):
         # convert to float if str
         self.lat = float(kwargs['lat'])
         self.lon = float(kwargs['lon'])
+
+        self.original_lat = self.lat
+        self.original_lon = self.lon
 
         assert abs(self.lat) < 90, 'lat exceeds bounds'
         assert abs(self.lon) < 180, 'lon exceeds bounds'
