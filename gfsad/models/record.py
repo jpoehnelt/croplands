@@ -20,9 +20,7 @@ class Record(db.Model):
 
     # required id column
     id = db.Column(db.Integer, primary_key=True)
-
     protected = db.Column(db.Boolean, default=False)
-    validation = db.Column(db.Boolean, default=lambda: random.choice([True, False]))
 
     # foreign keys
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
