@@ -53,6 +53,7 @@ def sum_ratings_for_record(id):
             """,
             {'id': id}
         )
+        db.session.commit()
     except Exception as e:
         print e
         pass
