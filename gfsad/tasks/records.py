@@ -127,6 +127,7 @@ def build_fusion_tables():
           FROM record
           LEFT JOIN location
           ON location.id = record.location_id
+          WHERE location.use_deleted is false AND location.use_invalid is false
           """
 
     result = db.engine.execute(cmd)
@@ -187,7 +188,7 @@ def build_static_records():
           FROM record
           LEFT JOIN location
           ON location.id = record.location_id
-          WHERE location.use_private = FALSE
+          WHERE location.use_private = FALSE AND location.use_deleted is false AND location.use_invalid is false
           ORDER BY random()
           """
 
