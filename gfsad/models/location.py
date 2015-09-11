@@ -78,7 +78,7 @@ class Location(db.Model):
 
         self.check_neighbor_use()
 
-    def check_neighbor_use(self, threshold=2000):
+    def check_neighbor_use(self, threshold=1000):
         """
         Requires nearby samples to be used either for validation or training and not both.
 
