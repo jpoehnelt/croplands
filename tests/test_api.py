@@ -228,7 +228,7 @@ class TestApi(TestCase):
 
             # team member can update
             user = User.from_email(user.email)
-            user.change_role('team')
+            user.change_role('mapping')
             user_headers = headers + [('authorization', 'bearer ' + make_jwt(user))]
 
             patch = c.patch('/api/locations/%d' % json_data['id'], headers=user_headers,
@@ -254,7 +254,7 @@ class TestApi(TestCase):
 
             # partner can update
             user = User.from_email(user.email)
-            user.change_role('team')
+            user.change_role('mapping')
             user_headers = headers + [('authorization', 'bearer ' + make_jwt(user))]
 
             patch = c.patch('/api/locations/%d' % json_data['id'], headers=user_headers,

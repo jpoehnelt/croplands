@@ -21,7 +21,7 @@ class User(db.Model):
     STATUS_UNVERIFIED = 'UNVERIFIED'
     STATUS_DISABLED = 'DISABLED'
 
-    ROLES = ['banned', 'registered', 'partner', 'team', 'admin']
+    ROLES = ['banned', 'registered', 'partner', 'mapping', 'validation', 'admin']
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
