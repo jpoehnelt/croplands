@@ -39,6 +39,55 @@ def get_ndvi(id, lat, lon):
         db.session.add(pt)
     db.session.commit()
 
+# @celery.task()
+# def get_ndvi_landsat(lat=31.74292, lon=-110.051375):
+#     init_gee()
+#     collection = ee.ImageCollection('LANDSAT/LC8_L1T')
+#     # collection = collection.filterDate('2010-01-01', '2015-12-31')
+#     data = collection.select(['B4', 'B5', 'BQA'])
+#     points = ee.Geometry.Point(lon, lat)
+#     results = data.getRegion(points, 231.65).getInfo()
+#     x = []
+#     y = []
+#
+#     mask_values = [61440, 59424, 57344, 56320, 52248, 39936, 36896, 28590, 26656, 24576, 20516]
+#     for row in results[1:]:
+#         b4 = row[4]
+#         b5 = row[5]
+#         bqa = row[6]
+#         dt = row[3]
+#
+#         if b4 is not None and b5 is not None and bqa not in mask_values:
+#             ndvi = float(b5 - b4) / float(b5 + b4)
+#             x.append(dt)
+#             y.append(ndvi)
+#
+#     # print x
+#     # print y
+#     from scipy.optimize import curve_fit
+#
+#     # def fit(x, a, b, c, d, e):
+#     #     return a*math.sin(d*x) + b*math.cos(e*x) + c
+#     #
+#     # params = curve_fit(xdata=x, ydata=y, f=fit)
+#     # print params[0]
+#
+#     from scipy.interpolate import interp1d
+#     f = interp1d(x, y, kind='cubic')
+#
+#     import numpy as np
+#     xnew = np.linspace(x[0], x[-1], num=100, endpoint=True)
+#
+#     # for val in xnew:
+#     #     print fit(val, *params[0])
+#
+#     import matplotlib.pyplot as plt
+#     import matplotlib
+#     matplotlib.use('TkAgg') # <-- THIS MAKES IT FAST!
+#     plt.plot(x, y, 'o', xnew, f(xnew), 'r--')
+#     plt.legend(['data', 'cubic'], loc='best')
+#     plt.show()
+
 
 @celery.task()
 def sum_ratings_for_record(id):
@@ -125,6 +174,7 @@ def build_static_records():
                   to_char(record.date_updated, 'yyyy-mm-dd') AS date_updated,
                   location.lat AS lat,
                   location.lon AS lon,
+                  CAST(use_validation as INTEGER) AS use_validation,
                   record.id as id,
                   record.rating as rating,
                   record.year as year,
@@ -145,7 +195,7 @@ def build_static_records():
     result = db.engine.execute(cmd)
     columns = result.keys()
     records = [
-        [row['location_id'], row['date_updated'], row['lat'], row['lon'], row['id'], row['rating'],
+        [row['location_id'], row['date_updated'], row['lat'], row['lon'], row['use_validation'], row['id'], row['rating'],
          row['year'], row['month'], row['land_use_type'], row['crop_primary'], row['crop_secondary'],
          row['water'],
          row['intensity']] for row in result]
