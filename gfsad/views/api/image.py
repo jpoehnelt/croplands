@@ -54,7 +54,7 @@ def create(app):
                    preprocessors={
                        'POST': [add_user_to_posted_data,
                                 check_for_base64, debug_post],
-                       'PATCH_SINGLE': [api_roles(['team', 'admin'])],
+                       'PATCH_SINGLE': [api_roles(['mapping', 'validation', 'admin'])],
                        'PATCH_MANY': [api_roles('admin')]
                    },
     )

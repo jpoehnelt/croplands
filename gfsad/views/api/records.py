@@ -86,7 +86,7 @@ def create(app):
                    methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
                    preprocessors={
                        'POST': [add_user_to_posted_data],
-                       'PATCH_SINGLE': [api_roles(['partner', 'team', 'admin']),
+                       'PATCH_SINGLE': [api_roles(['partner', 'mapping', 'validation', 'admin']),
                                         remove_relations, add_user_to_posted_data],
                        'PATCH_MANY': [api_roles('admin'), remove_relations],
                        'DELETE': [api_roles('admin')]

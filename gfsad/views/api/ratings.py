@@ -65,11 +65,11 @@ def create(app):
                    collection_name='ratings',
                    methods=['GET', 'POST', 'PATCH', 'PUT'],
                    preprocessors={
-                       'POST': [api_roles(['registered', 'partner', 'team', 'admin']),
+                       'POST': [api_roles(['registered', 'partner', 'mapping', 'validation', 'admin']),
                                 add_user_to_posted_data,
                                 delete_existing_rating_from_user_for_record,
                                 rating_adjuster],
-                       'PATCH_SINGLE': [api_roles(['registered', 'partner', 'team', 'admin']),
+                       'PATCH_SINGLE': [api_roles(['registered', 'partner', 'mapping', 'validation', 'admin']),
                                         cannot_edit_other_user_rating],
                        'PATCH_MANY': [api_roles('admin')],
                        'DELETE': [api_roles('admin')]
