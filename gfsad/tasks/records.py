@@ -107,7 +107,7 @@ def sum_ratings_for_record(id):
         print e
         pass
 
-@celery.task(rate_limit="1/h", time_limit=300)
+@celery.task(rate_limit="15/h", time_limit=300)
 def build_fusion_tables():
 
     cmd = """
@@ -146,6 +146,8 @@ def build_fusion_tables():
     writer_training.writeheader()
     writer_validation.writeheader()
     writer_public.writeheader()
+
+    print len(all_results)
 
     for row in all_results:
         if not row['use_private']:
@@ -188,7 +190,7 @@ def build_static_records():
           FROM record
           LEFT JOIN location
           ON location.id = record.location_id
-          WHERE location.use_private = FALSE AND location.use_deleted is false AND location.use_invalid is false
+          WHERE location.use_private is false AND location.use_deleted is false AND location.use_invalid is false
           ORDER BY random()
           """
 
