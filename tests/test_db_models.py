@@ -99,7 +99,7 @@ class TestDatabase(TestCase):
 
             self.assertEqual(l1.use_validation, l2.use_validation)
 
-            pt = get_destination([l1.lat, l1.lon], 90, 3)  # in km
+            pt = get_destination(l1.lat, l1.lon, 90, 3)  # in km
             l3 = Location(lat=pt[0], lon=pt[1], use_validation=False)
             db.session.add(l3)
             db.session.commit()
@@ -112,12 +112,12 @@ class TestDatabase(TestCase):
             db.session.add(l1)
             db.session.commit()
 
-            pt1 = get_destination([l1.lat, l1.lon], 90, 1.5)  # in km
+            pt1 = get_destination(l1.lat, l1.lon, 90, 1.5)  # in km
             l2 = Location(lat=pt1[0], lon=pt1[1], use_validation=False)
             db.session.add(l2)
             db.session.commit()
 
-            pt2 = get_destination([l1.lat, l1.lon], 90, .75)  # in km
+            pt2 = get_destination(l1.lat, l1.lon, 90, .75)  # in km
 
             # make sure we are in the failing condition with pt2
             self.assertEqual(2, len(Location.within(pt2[0], pt2[1], 1000)))

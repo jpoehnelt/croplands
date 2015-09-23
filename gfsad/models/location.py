@@ -1,4 +1,5 @@
 from gfsad.models import db
+from gfsad.utils.geo import get_destination
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
 from sqlalchemy.sql import text
@@ -70,6 +71,16 @@ class Location(db.Model):
         assert abs(self.lon) < 180, 'lon exceeds bounds'
 
         super(Location, self).__init__(*args, **kwargs)
+
+        if 'bearing' in kwargs \
+                and kwargs['bearing'] != -1 \
+                and 'distance' in kwargs \
+                and kwargs['distance'] > 0:
+
+            self.offset(kwargs['bearing'], kwargs['distance'])
+        else:
+            print 'offset unnecessary'
+
 
         if 'use_validation' not in kwargs and 'use_validation_locked' not in kwargs:
             self.use_validation = random.choice([True, False, False])
@@ -156,6 +167,17 @@ class Location(db.Model):
         sql += "< %d " % meters
 
         return db.session.query(Location).from_statement(text(sql)).all()
+
+    def offset(self, bearing, meters):
+        """
+        Offsets the location to center of area.
+        :param bearing: direction float
+        :param meters: distance int
+        :return: None
+        """
+        km = meters / 1000.0
+
+        self.lat, self.lon = get_destination(self.lat, self.lon, bearing, km)
 
 
 class Image(db.Model):

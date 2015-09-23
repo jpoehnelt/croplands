@@ -114,7 +114,7 @@ def calculate_plane_perpendicular_to_travel(origin, current, destination):
     return (first + second) / 2.0
 
 
-def get_destination(origin, bearing, d):
-    origin = Point(origin[0], origin[1])
-    destination = VincentyDistance(kilometers=d).destination(origin, bearing)
+def get_destination(lat, lon, bearing, km):
+    origin = Point(lat, lon)
+    destination = VincentyDistance(kilometers=km).destination(origin, bearing)
     return destination.latitude, destination.longitude

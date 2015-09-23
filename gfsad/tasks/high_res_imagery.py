@@ -240,7 +240,7 @@ def get_directions(origin_lat, origin_lon, destination_lat, destination_lon):
             if random.choice([True, False]):
                 bearing += 180
 
-            offset = get_destination(polyline[i], bearing, 0.05)  # km
+            offset = get_destination(polyline[i][0], polyline[i][1], bearing, 0.05)  # km
             geo_json['geometries'][1]['coordinates'].append([offset[1], offset[0]])
             previous = polyline[i]
             has_street_view_image(polyline[i][0], polyline[i][1], bearing)

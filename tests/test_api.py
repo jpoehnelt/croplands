@@ -140,6 +140,41 @@ class TestApi(TestCase):
             print response_data
             self.assertEqual(-1.0, response_data['bearing'])
 
+    def test_create_location_offset(self):
+        with self.app.test_client() as c:
+            data = {'lat': 45, 'lon': -90, 'distance': 200, 'bearing': 45}
+            headers = [('Content-Type', 'application/json')]
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            response_data = json.loads(post.data)
+
+            self.assertNotEqual(response_data['lat'], data['lat'])
+            self.assertNotEqual(response_data['lon'], data['lon'])
+            self.assertAlmostEquals(response_data['lat'], data['lat'], places=1)
+            self.assertAlmostEquals(response_data['lon'], data['lon'], places=1)
+
+            from gfsad.utils.geo import distance
+
+            self.assertAlmostEquals(data['distance'], distance(data['lat'], data['lon'],
+                                    response_data['lat'], response_data['lon']), 1)
+
+            # missing distance
+            data = {'lat': 46, 'lon': -90, 'bearing': 45}
+            headers = [('Content-Type', 'application/json')]
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            response_data = json.loads(post.data)
+
+            self.assertEqual(response_data['lat'], data['lat'])
+            self.assertEqual(response_data['lon'], data['lon'])
+
+            # missing bearing
+            data = {'lat': 47, 'lon': -90, 'distance': 45}
+            headers = [('Content-Type', 'application/json')]
+            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            response_data = json.loads(post.data)
+
+            self.assertEqual(response_data['lat'], data['lat'])
+            self.assertEqual(response_data['lon'], data['lon'])
+
     def test_create_location_with_user(self):
         with self.app.test_client() as c:
             headers = [('Content-Type', 'application/json')]
