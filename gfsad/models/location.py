@@ -171,8 +171,7 @@ class Location(db.Model):
         :param meters: distance int
         :return: None
         """
-        print type(bearing)
-        km = meters / 1000.0
+        km = float(meters) / 1000.0
 
         self.lat, self.lon = get_destination(self.lat, self.lon, bearing, km)
 
