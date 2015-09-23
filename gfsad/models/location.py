@@ -72,12 +72,8 @@ class Location(db.Model):
 
         super(Location, self).__init__(*args, **kwargs)
 
-        if 'bearing' in kwargs \
-                and kwargs['bearing'] != -1 \
-                and 'distance' in kwargs \
-                and kwargs['distance'] > 0:
-
-            self.offset(kwargs['bearing'], kwargs['distance'])
+        if self.bearing is not None and self.bearing != -1 and self.distance is not None and self.distance > 0:
+            self.offset(self.bearing, self.distance)
         else:
             print 'offset unnecessary'
 
@@ -175,6 +171,7 @@ class Location(db.Model):
         :param meters: distance int
         :return: None
         """
+        print type(bearing)
         km = meters / 1000.0
 
         self.lat, self.lon = get_destination(self.lat, self.lon, bearing, km)
