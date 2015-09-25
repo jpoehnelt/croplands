@@ -3,6 +3,7 @@ import json
 import base64
 from gfsad import create_app, db, limiter
 from gfsad.models import User
+from gfsad.auth import make_jwt
 from StringIO import StringIO
 import os
 import inspect
@@ -64,6 +65,30 @@ class TestUpload(TestCase):
                 'file': (StringIO(img), 'hello_world.jpg'),
             }
             r = c.post('/upload/image', data=data)
+
+            self.assertEqual(r.status_code, 201)
+
+    def test_image_upload_with_user(self):
+        with self.app.test_client() as c:
+            location = self.create_location(c)
+            user = self.create_user(c)
+            user_headers = [('authorization', 'bearer ' + make_jwt(user))]
+
+            d = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+            with open(os.path.join(d, 'test.JPG'), 'r') as f:
+                img = f.read()
+
+            data = {
+                'location_id': location['id'], 'lat': 0.01, 'lon': 0.0123,
+                'date_acquired': '2012-10-01',
+                'file': (StringIO(img), 'hello_world.jpg'),
+            }
+            r = c.post('/upload/image', data=data, headers=user_headers)
+
+            response = json.loads(r.data)
+
+            self.assertEqual(response['user_id'], user.id)
 
             self.assertEqual(r.status_code, 201)
 

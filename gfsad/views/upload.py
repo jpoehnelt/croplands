@@ -6,6 +6,7 @@ from gfsad.utils.s3 import upload_image
 import uuid
 import cStringIO
 from gfsad.models.location import Image, db
+from gfsad.auth import load_user
 
 upload = Blueprint('upload', __name__, url_prefix='/upload')
 
@@ -55,10 +56,18 @@ def image_view():
     else:
         raise BadRequest(description='Not enough data')
 
+
+
     # save to database
     image = Image(location_id=data['location_id'], lat=data['lat'], lon=data['lon'],
                   url=url,
                   date_acquired=data['date_acquired'])
+
+    # get the user from the token
+    user = load_user()
+    if user is not 'anonymous':
+        image.user_id = user.id
+
     db.session.add(image)
     db.session.commit()
     return jsonify(to_dict(image)), 201
