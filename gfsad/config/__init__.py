@@ -30,7 +30,7 @@ class Default(object):
     AWS_URL_SIGNING_EXPIRATION_DEFAULT = 60 * 60
 
     JWT_AUTH_URL_RULE = '/auth/l'
-    JWT_EXPIRATION_DELTA = timedelta(hours=6)
+    JWT_EXPIRATION_DELTA = timedelta(days=150)
 
     DEFAULT_MAIL_SENDER = 'info@croplands.org'
 
