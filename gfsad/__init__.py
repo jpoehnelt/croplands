@@ -74,6 +74,8 @@ def add_cors_headers(response):
         response.headers['Cache-Control'] = 'max-age=4000000'
     elif '/tiles' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=4000000'
+    elif '/stats' in request.url_rule.rule:
+        response.headers['Cache-Control'] = 'max-age=300'
     elif '/gee/maps' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=80000'
     else:
@@ -105,6 +107,7 @@ def create_app(config='Testing'):
     from gfsad.views.aws import aws
     from gfsad.views.upload import upload
     from gfsad.views.tiles import tile_blueprint
+    from gfsad.views.stats import stats_blueprint
 
     app.register_blueprint(public)
     app.register_blueprint(gee)
@@ -112,6 +115,7 @@ def create_app(config='Testing'):
     app.register_blueprint(auth)
     app.register_blueprint(upload)
     app.register_blueprint(tile_blueprint)
+    app.register_blueprint(stats_blueprint)
 
     from gfsad.views.api import init_api
 
