@@ -33,12 +33,14 @@ def get_leaders(since='2015-01-01', source='ground', limit=30):
 
 @stats_blueprint.route("/leaders")
 def leader_view():
+    month_ago = (datetime.date.today() - datetime.timedelta(days=30)).isoformat()
     week_ago = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
     day_ago = (datetime.datetime.today() - datetime.timedelta(hours=24)).isoformat()
 
     r = {
         'leaders': {
             'all_time': get_leaders(),
+            'monthly': get_leaders(since=month_ago),
             'weekly': get_leaders(since=week_ago),
             'daily': get_leaders(since=day_ago),
         }
