@@ -11,7 +11,7 @@ def get_leaders(since='2015-01-01', source='ground', limit=30):
     kwargs = locals().copy()
 
     cmd = text("""
-          SELECT record.count, initcap(u.first) AS first, upper(substring(u.last from 0 for 1)) AS last, u.organization FROM (SELECT record.user_id AS user_id, count(*) AS count
+          SELECT record.count, initcap(u.first) AS first, upper(substring(u.last from 1 for 1)) AS last, u.organization FROM (SELECT record.user_id AS user_id, count(*) AS count
           FROM record
           LEFT JOIN location
           ON location.id = record.location_id
