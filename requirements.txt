@@ -14,7 +14,7 @@ Flask-Migrate
 Flask-Restless==0.16.0
 Flask-SQLAlchemy
 Flask-Script
-Flask-JWT
+Flask-JWT==0.2.0
 Flask-Testing
 Flask-Limiter
 Flask-Celery-Helper
