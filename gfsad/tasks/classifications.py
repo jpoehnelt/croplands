@@ -38,7 +38,7 @@ def build_classifications_result():
     contents of the database are licensed under the Database Contents License:
     http://opendatacommons.org/licenses/dbcl/1.0/"""
 
-    ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, http://www.croplands.org'
+    ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, https://croplands.org'
     classes = [
         {'id': 0, 'order': 0, 'label': 'Unknown', 'description': 'Not cropland is...'},
         {'id': 1, 'order': 1, 'label': 'Cropland', 'description': 'Cropland is...'},
