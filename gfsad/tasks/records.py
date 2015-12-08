@@ -170,7 +170,7 @@ def build_static_records():
     contents of the database are licensed under the Database Contents License:
     http://opendatacommons.org/licenses/dbcl/1.0/"""
 
-    ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, http://www.croplands.org'
+    ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, https://croplands.org'
 
     cmd = """
           SELECT  location.id AS location_id,
