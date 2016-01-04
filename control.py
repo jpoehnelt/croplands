@@ -26,6 +26,7 @@ def worker(Q="gfsad"):
 
     celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
                    '--concurrency', '10']
+    print " ".join(celery_args)
     with manager.app.app_context():
         return celery_main(celery_args)
 
