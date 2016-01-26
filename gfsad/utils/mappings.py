@@ -22,7 +22,8 @@ def get_crop_label(id):
         'Palm',
         'Others',
         'Plantations',
-        'Fallow'
+        'Fallow',
+        'Tef'
     ][id]
 
 
