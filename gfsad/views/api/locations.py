@@ -3,7 +3,6 @@ from gfsad.models import Location
 from processors import api_roles, add_user_to_posted_data, remove_relations, debug_post
 from records import save_record_state_to_history
 from gfsad.tasks.records import get_ndvi, build_static_records
-from gfsad.utils.countries import find_country
 
 
 def process_records(result=None, **kwargs):
