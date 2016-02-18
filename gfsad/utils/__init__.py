@@ -1,6 +1,3 @@
-from countries import find_country
-
-
 def split_list(l, parts=1):
     """
     Splits a list into even pieces.
