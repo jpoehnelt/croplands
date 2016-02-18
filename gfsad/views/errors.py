@@ -8,7 +8,11 @@ from werkzeug.exceptions import BadRequest
 def init_error_handlers(app):
     @app.errorhandler(FieldError)
     def handle_field_error(e):
-        return JSONResponse(status_code=400, description='Missing required data',
+        if hasattr(e, 'description'):
+            description = e.description
+        else:
+            description = ""
+        return JSONResponse(status_code=400, description=description,
                             error='Bad request')
 
     @app.errorhandler(UserError)
