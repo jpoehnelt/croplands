@@ -49,10 +49,9 @@ from gfsad.models import db, User
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] = request.headers.get(
-        'Access-Control-Request-Headers', '')
+        'Access-Control-Request-Headers', '*')
     response.headers['Access-Control-Allow-Methods'] = request.headers.get(
         'Access-Control-Request-Method', '')
-
     # Do nothing for post, patch, delete etc..
     try:
         method = [e for e in request.url_rule.methods][-1]
@@ -67,9 +66,10 @@ def add_cors_headers(response):
         return response
 
     # set cache max age
-    if '/api' in request.url_rule.rule:
+    if 'Cache-Control' in response.headers:
+        pass
+    elif '/api' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=120'
-
     elif '/gee/time_series' in request.url_rule.rule:
         response.headers['Cache-Control'] = 'max-age=4000000'
     elif '/tiles' in request.url_rule.rule:
@@ -108,6 +108,7 @@ def create_app(config='Testing'):
     from gfsad.views.upload import upload
     from gfsad.views.tiles import tile_blueprint
     from gfsad.views.stats import stats_blueprint
+    from gfsad.views.data import data_blueprint
 
     app.register_blueprint(public)
     app.register_blueprint(gee)
@@ -116,6 +117,7 @@ def create_app(config='Testing'):
     app.register_blueprint(upload)
     app.register_blueprint(tile_blueprint)
     app.register_blueprint(stats_blueprint)
+    app.register_blueprint(data_blueprint)
 
     from gfsad.views.api import init_api
 
