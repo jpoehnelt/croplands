@@ -77,30 +77,6 @@ def coverage():
         # for y in range(500000, 1500000):
         # get_street_view_coverage(x, y, 21)
 
-
-@manager.command
-def country():
-    with manager.app.app_context():
-        locations = Location.query.filter_by(country=None).all()
-        from gfsad.utils.countries import find_country
-
-        c = 0
-        print len(locations)
-        for l in locations:
-            country = find_country(l.lon, l.lat)
-            if country is not None:
-                l.country = country['name']
-                l.continent = country['continent']
-
-            print l.country, l.continent, l.lat, l.lon
-            if c % 100 == 0:
-                print c
-                db.session.commit()
-            c += 1
-
-        db.session.commit()
-
-
 @manager.command
 def clear_mapids():
     """
@@ -114,6 +90,38 @@ def clear_mapids():
             print 'deleting %s' % key
             redis_client.delete(key)
 
+@manager.command
+def reference_data_coverage():
+    """
+    Clears all map ids from the cache. Map ids and tokens are currently stored for
+    between 12 and 24 hours to speed retrieval of tiles from Google Earth Engine.
+    :return: None
+    """
+    with manager.app.app_context():
+        from gfsad.tasks.reference_data_coverage import reference_data_coverage_task
+        reference_data_coverage_task()
+
+@manager.command
+def fusion():
+    """
+    Clears all map ids from the cache. Map ids and tokens are currently stored for
+    between 12 and 24 hours to speed retrieval of tiles from Google Earth Engine.
+    :return: None
+    """
+    with manager.app.app_context():
+        from gfsad.tasks.records import build_fusion_tables
+        build_fusion_tables()
+
+@manager.command
+def static_records():
+    """
+    Clears all map ids from the cache. Map ids and tokens are currently stored for
+    between 12 and 24 hours to speed retrieval of tiles from Google Earth Engine.
+    :return: None
+    """
+    with manager.app.app_context():
+        from gfsad.tasks.records import build_static_records
+        build_static_records()
 
 if __name__ == '__main__':
     manager.run()
