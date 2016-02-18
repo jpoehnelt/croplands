@@ -109,7 +109,7 @@ def search():
     headers = {
         "Query-Count-Total": str(count_total),
         "Query-Count-Filtered": str(count_filtered),
-        "Cache-Control": "max-age=300",
+        "Cache-Control": "max-age=259200",
         "Access-Control-Expose-Headers": "Query-Count-Total, Query-Count-Filtered, Query-Next"
 
     }
