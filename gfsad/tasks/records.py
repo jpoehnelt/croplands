@@ -3,7 +3,8 @@ from gfsad import celery
 from gfsad.models import db, TimeSeries
 from gfsad.utils import split_list
 from gfsad.utils.fusion import replace_rows
-from gfsad.utils.mappings import get_crop_label, get_intensity_label, get_land_cover_label, get_water_label
+from gfsad.utils.mappings import get_crop_label, get_intensity_label, get_land_cover_label, \
+    get_water_label
 import boto
 from boto.s3.key import Key
 import datetime
@@ -13,16 +14,20 @@ import json
 from gfsad.views.gee import init_gee, extract_info
 import csv
 
+
 def status(so_far, total):
     print '%d bytes transferred out of %d' % (so_far, total)
+
 
 def convert_to_labels(row):
     row['water_source'] = get_water_label(row['water_source'])
     row['crop_primary'] = get_crop_label(row['crop_primary'])
+    row['crop_secondary'] = get_crop_label(row['crop_secondary'])
     row['land_cover'] = get_land_cover_label(row['land_cover'])
     row['intensity'] = get_intensity_label(row['intensity'])
 
     return row
+
 
 @celery.task()
 def get_ndvi(id, lat, lon):
@@ -39,9 +44,10 @@ def get_ndvi(id, lat, lon):
         db.session.add(pt)
     db.session.commit()
 
+
 # @celery.task()
 # def get_ndvi_landsat(lat=31.74292, lon=-110.051375):
-#     init_gee()
+# init_gee()
 #     collection = ee.ImageCollection('LANDSAT/LC8_L1T')
 #     # collection = collection.filterDate('2010-01-01', '2015-12-31')
 #     data = collection.select(['B4', 'B5', 'BQA'])
@@ -107,9 +113,9 @@ def sum_ratings_for_record(id):
         print e
         pass
 
+
 @celery.task(rate_limit="15/h", time_limit=300)
 def build_fusion_tables():
-
     cmd = """
           SELECT  record.id as id,
                   location.id AS location_id,
@@ -120,13 +126,32 @@ def build_fusion_tables():
                   record.month as month,
                   record.land_use_type as land_cover,
                   record.crop_primary as crop_primary,
+                  record.crop_secondary as crop_secondary,
                   record.water as water_source,
                   record.intensity as intensity,
+                  location.country as country,
+                  record.source_description as source_description,
+                  record.source_type as source_type,
+                  record.source_id as source_id,
+                  record.source_class as source_class,
+                  images.image_1 as image_1,
+                  images.image_2 as image_2,
+                  images.image_3 as image_3,
                   location.use_validation as use_validation,
                   location.use_private as use_private
           FROM record
-          LEFT JOIN location
-          ON location.id = record.location_id
+          LEFT JOIN location ON location.id = record.location_id
+          LEFT OUTER JOIN (SELECT * from crosstab (
+            $$SELECT location_id, url, replace(url, 'images/', 'http://images.croplands.org/')
+             FROM   image
+             WHERE  url not like '%%digital_globe%%'
+             $$)
+             AS t ( location_id int,
+              image_1 text, --varchar changed to text with replace function above
+              image_2 text,
+              image_3 text
+            )
+          ) images on location.id = images.location_id
           WHERE location.use_deleted is false AND location.use_invalid is false
           """
 
@@ -150,16 +175,21 @@ def build_fusion_tables():
     print len(all_results)
 
     for row in all_results:
-        if not row['use_private']:
-            writer_public.writerow(row)
-        if row['use_validation']:
-            writer_validation.writerow(row)
-        else:
-            writer_training.writerow(row)
+        try:
+            if not row['use_private']:
+                writer_public.writerow(row)
+            if row['use_validation']:
+                writer_validation.writerow(row)
+            else:
+                row['intensity'] = 'Unknown'
+                writer_training.writerow(row)
+        except UnicodeEncodeError as e:
+            print e, row
 
-    replace_rows('1C_gFvQmd3AGtB0Q0XgnKk5ESUARSH79FB9Un8sF2',training, startLine=1)
-    replace_rows('12WLGpk7o1ic_j88NQfmrUEILVWDlrJaqZCAqEDeo',validation, startLine=1)
-    replace_rows('1jQjTg7zXhwmLGJdfPCavgdifnyNTqJGi3Bn3RwWF',public, startLine=1)
+    replace_rows('1C_gFvQmd3AGtB0Q0XgnKk5ESUARSH79FB9Un8sF2', training, startLine=1)
+    replace_rows('12WLGpk7o1ic_j88NQfmrUEILVWDlrJaqZCAqEDeo', validation, startLine=1)
+    replace_rows('1jQjTg7zXhwmLGJdfPCavgdifnyNTqJGi3Bn3RwWF', public, startLine=1)
+
 
 @celery.task(rate_limit="15/h", time_limit=300)
 def build_static_records():
@@ -194,12 +224,13 @@ def build_static_records():
           ORDER BY random()
           """
 
-
     result = db.engine.execute(cmd)
     columns = result.keys()
     records = [
-        [row['location_id'], row['date_updated'], row['lat'], row['lon'], row['use_validation'], row['id'], row['rating'],
-         row['year'], row['month'], row['land_use_type'], row['crop_primary'], row['crop_secondary'],
+        [row['location_id'], row['date_updated'], row['lat'], row['lon'], row['use_validation'],
+         row['id'], row['rating'],
+         row['year'], row['month'], row['land_use_type'], row['crop_primary'],
+         row['crop_secondary'],
          row['water'],
          row['intensity']] for row in result]
 
@@ -214,9 +245,9 @@ def build_static_records():
 
     for i in range(1, NUM_FILES + 1):
         if current_app.testing:
-            key = 'json/records.test.p%d.json'
+            key = 'public/json/records.test.p%d.json'
         else:
-            key = 'json/records.p%d.json'
+            key = 'public/json/records.p%d.json'
 
         content = {
             'num_results': len(records),
