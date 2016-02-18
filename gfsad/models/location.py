@@ -38,7 +38,7 @@ class Location(db.Model):
     original_lon = db.Column(db.Float, nullable=False)
 
     # offset
-    #  bearing from lat lon to center of field from lat lon
+    # bearing from lat lon to center of field from lat lon
     bearing = db.Column(db.Float, default=-1)
     distance = db.Column(db.Integer)  # distance along bearing to center of field from lat lon
     accuracy = db.Column(db.Integer)
@@ -55,8 +55,8 @@ class Location(db.Model):
     use_validation = db.Column(db.Boolean, default=False, index=True)
     use_validation_locked = db.Column(db.Boolean, default=False, index=True)
     use_private = db.Column(db.Boolean, default=False, index=True)
-    use_deleted = db.Column(db.Boolean, default=False)
-    use_invalid = db.Column(db.Boolean, default=False)
+    use_deleted = db.Column(db.Boolean, default=False, index=True)
+    use_invalid = db.Column(db.Boolean, default=False, index=True)
     use_invalid_reason = db.Column(db.String)
 
     def __init__(self, *args, **kwargs):
@@ -77,14 +77,14 @@ class Location(db.Model):
         else:
             print 'offset unnecessary'
 
-
         if 'use_validation' not in kwargs and 'use_validation_locked' not in kwargs:
             self.use_validation = random.choice([True, False, False])
             if self.use_validation:
                 self.use_validation_locked = random.choice([True, False])
 
         self.check_neighbor_use()
-
+        # self.check_neighbor_field()
+pda
     def check_neighbor_use(self, threshold=1000):
         """
         Requires nearby samples to be used either for validation or training and not both.
@@ -141,6 +141,19 @@ class Location(db.Model):
                 self.use_invalid = True
                 self.use_invalid_reason = '[Neighbor sample use is mix of training and validation]'
 
+    def check_neighbor_field(self, meters=100):
+        # get nearby locations to this location
+        nearby_locations = Location.within(self.lat, self.lon, meters)
+
+        # if there are nearby locations
+        if len(nearby_locations) > 0:
+            self.use_invalid = True
+            if self.use_invalid_reason is None:
+                self.use_invalid_reason = '[Same field as another location]'
+            else:
+                self.use_invalid_reason += '[Same field as another location]'
+
+
     @classmethod
     def within(cls, lat, lon, meters):
         """
@@ -159,7 +172,7 @@ class Location(db.Model):
 
         sql = "SELECT * FROM location "
         sql += "WHERE st_distance_sphere(st_makepoint(lon, lat), st_makepoint(%f,%f)) " % (
-        float(lon), float(lat))
+            float(lon), float(lat))
         sql += "< %d " % meters
 
         return db.session.query(Location).from_statement(text(sql)).all()

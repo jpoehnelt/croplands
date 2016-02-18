@@ -38,22 +38,20 @@ class Record(db.Model):
     source_id = db.Column(db.String)
     source_type = db.Column(db.String, nullable=False)
     source_description = db.Column(db.String)
+    source_class = db.Column(db.String, index=True)
 
     # fields that vary by year
-    land_use_type = db.Column(db.Integer, default=0)
-    intensity = db.Column(db.Integer, default=0)
-    water = db.Column(db.Integer, default=0)
+    land_use_type = db.Column(db.Integer, default=0, index=True)
+    intensity = db.Column(db.Integer, default=0, index=True)
+    water = db.Column(db.Integer, default=0, index=True)
 
     # crop types
-    crop_primary = db.Column(db.Integer, default=0)
-    crop_secondary = db.Column(db.Integer, default=0)
+    crop_primary = db.Column(db.Integer, default=0, index=True)
+    crop_secondary = db.Column(db.Integer, default=0, index=True)
 
     # calculated rating that is periodically updated
-    rating = db.Column(db.Integer, default=0)
+    rating = db.Column(db.Integer, default=0, index=True)
 
-    ndvi_modis = db.Column(postgresql.ARRAY(db.Integer),
-                           default=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                    0, 0])
     # sub models
     history = relationship("RecordHistory", cascade="all, delete-orphan")
     ratings = relationship("RecordRating", cascade="all, delete-orphan")
@@ -62,7 +60,8 @@ class Record(db.Model):
         if 'source_type' not in kwargs:
             kwargs['source_type'] = 'unknown'
         if kwargs['source_type'] not in Record.SOURCE_TYPE_CHOICES:
-            raise BadRequest(description='Valid options for source_type include: ' + str(Record.SOURCE_TYPE_CHOICES))
+            raise BadRequest(description='Valid options for source_type include: ' + str(
+                Record.SOURCE_TYPE_CHOICES))
 
         super(Record, self).__init__(*args, **kwargs)
 
