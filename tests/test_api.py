@@ -231,6 +231,7 @@ class TestApi(TestCase):
             headers = [('Content-Type', 'application/json')]
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            print json.loads(post.data)
             self.assertEqual(post.status_code, 400)
             # would prefer a more descriptive response
 
