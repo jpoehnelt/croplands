@@ -95,6 +95,8 @@ class Production(Default):
     # REDIS
     REDISCLOUD_URL = os.environ.get('REDISCLOUD_URL')
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    PROPAGATE_EXCEPTIONS = True
     RATELIMIT_STORAGE_URL = os.environ.get('REDISCLOUD_URL')
 
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
