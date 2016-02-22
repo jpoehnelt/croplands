@@ -217,10 +217,7 @@ def get_segments_more_bands(lat=41.01, lon=-96, bufferSize=2000, blurRadius=30):
 @limiter.limit("1 per second")
 def time_series():
     # Pass Field Data Mapping
-    try:
-        ee_auth = init_gee()
-    except:
-        return jsonify({'status': 'error', 'message': "Could not init connection to GEE"})
+    ee_auth = init_gee()
 
     lat = request.args.get('lat', 31.74292, type=float)
     lon = request.args.get('lon', -110.051375, type=float)
