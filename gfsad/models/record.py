@@ -40,6 +40,9 @@ class Record(db.Model):
     source_description = db.Column(db.String)
     source_class = db.Column(db.String, index=True)
 
+    # time series ndvi element for each month
+    ndvi = db.Column(postgresql.ARRAY(db.Integer))
+
     # fields that vary by year
     land_use_type = db.Column(db.Integer, default=0, index=True)
     intensity = db.Column(db.Integer, default=0, index=True)

@@ -1,6 +1,6 @@
 from flask import current_app
 from gfsad import celery
-from gfsad.models import db, TimeSeries
+from gfsad.models import db, TimeSeries, Location, Record
 from gfsad.utils import split_list
 from gfsad.utils.fusion import replace_rows
 from gfsad.utils.mappings import get_crop_label, get_intensity_label, get_land_cover_label, \
@@ -25,74 +25,35 @@ def convert_to_labels(row):
     row['crop_secondary'] = get_crop_label(row['crop_secondary'])
     row['land_cover'] = get_land_cover_label(row['land_cover'])
     row['intensity'] = get_intensity_label(row['intensity'])
-
     return row
 
 
+def median(A):
+    if len(A) == 0:
+        return None
+    return sorted(A)[len(A) / 2]
+
+
 @celery.task()
-def get_ndvi(id, lat, lon):
+def get_ndvi(id):
+    record = db.session.query(Record).filter(Record.id == id).first()
+
     init_gee()
-    time_series_data = extract_info(lat=lat, lon=lon, date_start="1990-01-01")
-    for data in time_series_data:
-        if data['ndvi'] is None:
+    data = extract_info(collection='MODIS/MCD43A4_NDVI', lat=record.location.lat, lon=record.location.lon,
+                        date_start=str(record.year) + "-01-01", date_end=str(record.year) + "-12-31")
+
+    series = [[] for i in range(0, 12)]
+
+    for row in data:
+        if row['ndvi'] is None:
             continue
+        month = int(row['date'].split('-')[1])
+        series[month - 1].append(1000 * row['ndvi'])
 
-        pt = TimeSeries(location_id=id,
-                        date_acquired=datetime.datetime.strptime(data['date'], "%Y-%m-%d"),
-                        series='modis_ndvi',
-                        value=data['ndvi'])
-        db.session.add(pt)
-    db.session.commit()
+    series12 = [median(month) for month in series]
 
-
-# @celery.task()
-# def get_ndvi_landsat(lat=31.74292, lon=-110.051375):
-# init_gee()
-#     collection = ee.ImageCollection('LANDSAT/LC8_L1T')
-#     # collection = collection.filterDate('2010-01-01', '2015-12-31')
-#     data = collection.select(['B4', 'B5', 'BQA'])
-#     points = ee.Geometry.Point(lon, lat)
-#     results = data.getRegion(points, 231.65).getInfo()
-#     x = []
-#     y = []
-#
-#     mask_values = [61440, 59424, 57344, 56320, 52248, 39936, 36896, 28590, 26656, 24576, 20516]
-#     for row in results[1:]:
-#         b4 = row[4]
-#         b5 = row[5]
-#         bqa = row[6]
-#         dt = row[3]
-#
-#         if b4 is not None and b5 is not None and bqa not in mask_values:
-#             ndvi = float(b5 - b4) / float(b5 + b4)
-#             x.append(dt)
-#             y.append(ndvi)
-#
-#     # print x
-#     # print y
-#     from scipy.optimize import curve_fit
-#
-#     # def fit(x, a, b, c, d, e):
-#     #     return a*math.sin(d*x) + b*math.cos(e*x) + c
-#     #
-#     # params = curve_fit(xdata=x, ydata=y, f=fit)
-#     # print params[0]
-#
-#     from scipy.interpolate import interp1d
-#     f = interp1d(x, y, kind='cubic')
-#
-#     import numpy as np
-#     xnew = np.linspace(x[0], x[-1], num=100, endpoint=True)
-#
-#     # for val in xnew:
-#     #     print fit(val, *params[0])
-#
-#     import matplotlib.pyplot as plt
-#     import matplotlib
-#     matplotlib.use('TkAgg') # <-- THIS MAKES IT FAST!
-#     plt.plot(x, y, 'o', xnew, f(xnew), 'r--')
-#     plt.legend(['data', 'cubic'], loc='best')
-#     plt.show()
+    record.ndvi = series12
+    print("Record #%d NDVI Updated" % r.id)
 
 
 @celery.task()
@@ -286,3 +247,11 @@ def build_static_records():
         k.make_public()
 
 
+if __name__ == "__main__":
+    from gfsad import create_app
+
+    app = create_app(config='Production')
+    with app.app_context():
+        for r in db.session.query(Record).filter(Record.ndvi==None).limit(2).all():
+            get_ndvi(r.id)
+        db.session.commit()

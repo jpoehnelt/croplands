@@ -1,6 +1,6 @@
 from gfsad import api
 from gfsad.models import Record, RecordHistory, RecordRating, db, Notification
-from gfsad.tasks.records import build_static_records
+from gfsad.tasks.records import build_static_records, get_ndvi
 from processors import (
     api_roles,
     add_user_to_posted_data,
@@ -79,6 +79,12 @@ def notify(result=None, **kwargs):
     # db.session.add(note)
     # db.session.commit()
 
+def get_external_data(result=None, **kwargs):
+    try:
+        get_ndvi.delay(result['id'])
+    except Exception as e:
+        print e
+
 
 def create(app):
     api.create_api(Record,
@@ -92,7 +98,7 @@ def create(app):
                        'DELETE': [api_roles('admin')]
                    },
                    postprocessors={
-                       'POST': [save_record_state_to_history, update_static_records, notify],
+                       'POST': [save_record_state_to_history, update_static_records, notify, get_external_data],
                        'PATCH_SINGLE': [save_record_state_to_history, notify,
                                         update_static_records, mark_ratings_stale],
                        'PATCH_MANY': [],
