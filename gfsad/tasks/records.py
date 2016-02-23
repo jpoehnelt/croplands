@@ -54,6 +54,8 @@ def get_ndvi(id):
 
     record.ndvi = series12
     print("Record #%d NDVI Updated" % r.id)
+    db.session.commit()
+
 
 
 @celery.task()
