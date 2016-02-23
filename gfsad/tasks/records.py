@@ -34,7 +34,7 @@ def median(A):
     return sorted(A)[len(A) / 2]
 
 
-@celery.task()
+@celery.task(rate_limit="30/m", time_limit=300)
 def get_ndvi(id):
     record = db.session.query(Record).filter(Record.id == id).first()
 
@@ -53,7 +53,7 @@ def get_ndvi(id):
     series12 = [median(month) for month in series]
 
     record.ndvi = series12
-    print("Record #%d NDVI Updated" % r.id)
+    print("Record #%d NDVI Updated" % record.id)
     db.session.commit()
 
 
@@ -247,13 +247,3 @@ def build_static_records():
         else:
             k.set_contents_from_string(out.getvalue())
         k.make_public()
-
-
-if __name__ == "__main__":
-    from gfsad import create_app
-
-    app = create_app(config='Production')
-    with app.app_context():
-        for r in db.session.query(Record).filter(Record.ndvi==None).limit(2).all():
-            get_ndvi(r.id)
-        db.session.commit()
