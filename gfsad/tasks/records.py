@@ -39,7 +39,7 @@ def get_ndvi(id):
     record = db.session.query(Record).filter(Record.id == id).first()
 
     init_gee()
-    data = extract_info(collection='MODIS/MCD43A4_NDVI', lat=record.location.lat, lon=record.location.lon,
+    data = extract_info(lat=record.location.lat, lon=record.location.lon,
                         date_start=str(record.year) + "-01-01", date_end=str(record.year) + "-12-31")
 
     series = [[] for i in range(0, 12)]

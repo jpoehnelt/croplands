@@ -17,9 +17,8 @@ def init_gee():
 def extract_info(collection='MODIS/MOD13Q1', lat=31.74292, lon=-110.051375, date_start='2008-01-01',
                  date_end=datetime.date.today().isoformat()):
     collection = ee.ImageCollection(collection)
-    collection = collection.map(lambda img: add_ndvi_band(img))
     filter = collection.filterDate(date_start, date_end)
-    data = filter.select(['ndvi'])
+    data = filter.select(['NDVI'])
     points = ee.Geometry.Point(lon, lat)
     results = data.getRegion(points, 231.65).getInfo()
 
@@ -34,7 +33,7 @@ def extract_info(collection='MODIS/MOD13Q1', lat=31.74292, lon=-110.051375, date
 
 def add_ndvi_band(image):
     ndvi = image.normalizedDifference(['B5', 'B4'])
-    image = image.addBands(ndvi)
+    image = image.addBands(ndvi, ['NDVI'])
     return image
 
 
