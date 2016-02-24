@@ -48,7 +48,7 @@ def get_ndvi(id):
         if row['ndvi'] is None:
             continue
         month = int(row['date'].split('-')[1])
-        series[month - 1].append(1000 * row['ndvi'])
+        series[month - 1].append(int(row['ndvi'] / 10))
 
     series12 = [median(month) for month in series]
 
