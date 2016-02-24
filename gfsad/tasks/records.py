@@ -60,7 +60,7 @@ def get_ndvi(id):
         month = int(row['date'].split('-')[1])
         series[month - 1].append(int(row['ndvi'] / 10))
 
-    series12 = [median(month) for month in series]
+    series12 = [mean(month) for month in series]
 
     record.ndvi_mean = int(mean(series12))
     record.ndvi = series12
