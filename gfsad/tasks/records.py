@@ -45,6 +45,7 @@ def get_ndvi(id):
     series = [[] for i in range(0, 12)]
 
     for row in data:
+        print row
         if row['ndvi'] is None:
             continue
         month = int(row['date'].split('-')[1])
