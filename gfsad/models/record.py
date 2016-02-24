@@ -42,6 +42,7 @@ class Record(db.Model):
 
     # time series ndvi element for each month
     ndvi = db.Column(postgresql.ARRAY(db.Integer))
+    ndvi_mean = db.Column(db.Integer, index=True)
 
     # fields that vary by year
     land_use_type = db.Column(db.Integer, default=0, index=True)

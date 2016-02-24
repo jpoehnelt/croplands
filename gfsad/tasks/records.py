@@ -33,6 +33,16 @@ def median(A):
         return None
     return sorted(A)[len(A) / 2]
 
+def mean(A):
+    total = 0.0
+    count = 0
+
+    for i in A:
+        if i is not None:
+            total += i
+            count += 1
+
+    return total / count
 
 @celery.task(rate_limit="120/m", time_limit=300)
 def get_ndvi(id):
@@ -45,7 +55,6 @@ def get_ndvi(id):
     series = [[] for i in range(0, 12)]
 
     for row in data:
-        print row
         if row['ndvi'] is None:
             continue
         month = int(row['date'].split('-')[1])
@@ -53,10 +62,11 @@ def get_ndvi(id):
 
     series12 = [median(month) for month in series]
 
+    record.ndvi_mean = int(mean(series12))
     record.ndvi = series12
-    print("Record #%d NDVI Updated" % record.id)
-    db.session.commit()
 
+    print("Record #%d NDVI Updated. Mean: %d" % (record.id, record.ndvi_mean))
+    db.session.commit()
 
 
 @celery.task()
