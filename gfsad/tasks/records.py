@@ -34,6 +34,8 @@ def median(A):
     return sorted(A)[len(A) / 2]
 
 def mean(A):
+    if len(A) == 0:
+        return None
     total = 0.0
     count = 0
 
