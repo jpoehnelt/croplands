@@ -34,7 +34,7 @@ def median(A):
     return sorted(A)[len(A) / 2]
 
 
-@celery.task(rate_limit="30/m", time_limit=300)
+@celery.task(rate_limit="120/m", time_limit=300)
 def get_ndvi(id):
     record = db.session.query(Record).filter(Record.id == id).first()
 
