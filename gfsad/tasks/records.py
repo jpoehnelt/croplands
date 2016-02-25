@@ -54,18 +54,12 @@ def get_ndvi(id):
     data = extract_info(lat=record.location.lat, lon=record.location.lon,
                         date_start=str(record.year) + "-01-01", date_end=str(record.year) + "-12-31")
 
-    series = [[] for i in range(0, 12)]
+    series23 = [int(row['ndvi'] / 10) if row['ndvi'] is not None else None for row in data]
 
-    for row in data:
-        if row['ndvi'] is None:
-            continue
-        month = int(row['date'].split('-')[1])
-        series[month - 1].append(int(row['ndvi'] / 10))
+    assert len(series23) == 23
 
-    series12 = [mean(month) for month in series]
-
-    record.ndvi_mean = int(mean(series12))
-    record.ndvi = series12
+    record.ndvi_mean = int(mean(series23))
+    record.ndvi = series23
 
     print("Record #%d NDVI Updated. Mean: %d" % (record.id, record.ndvi_mean))
     db.session.commit()

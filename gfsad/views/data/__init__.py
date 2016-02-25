@@ -199,12 +199,12 @@ def image():
                 continue
 
             if path is None:
-                path = "M%d %d" % (i*100 + 150, 1000 - max(0, min(val, 1000)))
+                path = "M%d %d" % (i*52.17 + 150, 1000 - max(0, min(val, 1000)))
             else:
                 if segments == 1:
-                    path += "L%d %d" % (i*100 + 150, 1000 - max(0, min(val, 1000)))
+                    path += "L%d %d" % (i*52.17 + 150, 1000 - max(0, min(val, 1000)))
                 else:
-                    path += " %d %d" % (i*100 + 150, 1000 - max(0, min(val, 1000)))
+                    path += " %d %d" % (i*52.17 + 150, 1000 - max(0, min(val, 1000)))
 
             if i + 1 == len(r[0].ndvi):
                 paths += '<path d="' + path + '"/>'
