@@ -44,6 +44,9 @@ def mean(A):
             total += i
             count += 1
 
+    if count == 0:
+        return 0
+
     return total / count
 
 @celery.task(rate_limit="120/m", time_limit=300)
