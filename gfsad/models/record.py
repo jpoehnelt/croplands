@@ -56,6 +56,8 @@ class Record(db.Model):
     # calculated rating that is periodically updated
     rating = db.Column(db.Integer, default=0, index=True)
 
+    scale = db.Column(db.Integer, default=-1)
+
     # sub models
     history = relationship("RecordHistory", cascade="all, delete-orphan")
     ratings = relationship("RecordRating", cascade="all, delete-orphan")
