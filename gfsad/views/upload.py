@@ -30,6 +30,7 @@ def image_view():
             print "missing %s" % field
             raise BadRequest(description='Image requires %s.' % field)
 
+
     if 'file' in request.files and request.files['file'] is not None:
         # get the file from the request object
         f = request.files['file']
@@ -67,6 +68,9 @@ def image_view():
     user = load_user()
     if user is not 'anonymous':
         image.user_id = user.id
+
+    if 'source' in data:
+        image.source = data['source']
 
     db.session.add(image)
     db.session.commit()
