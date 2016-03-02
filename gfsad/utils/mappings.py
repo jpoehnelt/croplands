@@ -23,7 +23,9 @@ def get_crop_label(id):
         'Others',
         'Plantations',
         'Fallow',
-        'Tef'
+        'Tef',
+        'Pastures',
+        'Oats'
     ][id]
 
 
