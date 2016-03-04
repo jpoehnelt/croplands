@@ -25,7 +25,7 @@ def worker(Q="gfsad"):
     from random import randint
 
     celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
-                   '--concurrency', '10']
+                   '--concurrency', '4']
     print " ".join(celery_args)
     with manager.app.app_context():
         return celery_main(celery_args)
@@ -89,6 +89,17 @@ def clear_mapids():
         for key in redis_client.scan_iter(match='flask_cache_map_*'):
             print 'deleting %s' % key
             redis_client.delete(key)
+
+
+@manager.command
+def ndvi():
+    from gfsad.models import Record
+    from gfsad.tasks.records import get_ndvi
+    with manager.app.app_context():
+        for r in db.session.query(Record).filter(Record.ndvi==None).all():
+            get_ndvi.delay(r.id)
+            print("Called get_ndvi.delay(%d)" % r.id)
+
 
 @manager.command
 def reference_data_coverage():
