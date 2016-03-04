@@ -152,7 +152,8 @@ def create_app(config='Testing'):
 
     import tasks.high_res_imagery
     import tasks.classifications
-
+    import tasks.reference_data_coverage
+    
     return app
 
 
