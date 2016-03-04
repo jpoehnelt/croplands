@@ -118,6 +118,11 @@ class Production(Default):
             'schedule': timedelta(hours=12),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
+        'build_data_coverage': {
+            'task': 'gfsad.tasks.reference_data_coverage.reference_data_coverage_task',
+            'schedule': timedelta(hours=12),
+            'options': {'queue': CELERY_DEFAULT_QUEUE}
+        },
     }
     CACHE_TYPE = 'redis'
     CACHE_REDIS_URL = REDISCLOUD_URL
