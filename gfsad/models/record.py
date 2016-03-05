@@ -2,9 +2,9 @@ from werkzeug.exceptions import BadRequest
 from gfsad.models import db
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
-import random
+from sqlalchemy import and_, func
 from sqlalchemy.dialects import postgresql
-
+from location import Image
 
 class Record(db.Model):
     """
@@ -26,10 +26,15 @@ class Record(db.Model):
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
     location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
 
+
     # when - no more granularity than month needed
     year = db.Column(db.Integer, nullable=False, index=True)
     month = db.Column(db.Integer, index=True)
 
+    images = relationship("Image", primaryjoin=and_(location_id == Image.location_id,
+                                                    year == func.extract('year',
+                                                                         Image.date_acquired)),
+                          foreign_keys=Image.location_id)
     #
     date_created = db.Column(db.DateTime, default=db.func.now())
     date_updated = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
