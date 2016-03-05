@@ -5,6 +5,7 @@ from gfsad.exceptions import FieldError
 from requests.models import PreparedRequest
 from flask_jwt import current_user
 from sqlalchemy import func, asc, desc
+from sqlalchemy.dialects.postgres import ARRAY
 
 data_blueprint = Blueprint('data', __name__, url_prefix='/data')
 
@@ -79,6 +80,8 @@ def search():
 
     count_total = q.count()
 
+    next_url_params = {}
+
     # filter by bounds
     if request.args.get('southWestBounds') is not None and request.args.get(
             'northEastBounds') is not None:
@@ -87,7 +90,19 @@ def search():
         q = q.filter(Location.lat > float(south_west[0]), Location.lon > float(south_west[1]),
                      Location.lat < float(north_east[0]), Location.lon < float(north_east[1]))
 
-    next_url_params = {}
+        next_url_params['northEastBounds'] = request.args.get('northEastBounds')
+        next_url_params['southWestBounds'] = request.args.get('southWestBounds')
+
+
+
+    if request.args.get('ndvi_limit_upper') is not None and request.args.get('ndvi_limit_lower') is not None:
+        # q = q.filter(func.array_bounds(Record.ndvi, '{' + ",".join([str(int(v)) for v in request.args.get('ndvi_limit_upper').split(',')]) + '}', '{' + ",".join([str(int(v)) for v in request.args.get('ndvi_limit_lower').split(',')]) + '}'))
+        q = q.filter(func.array_bounds(Record.ndvi, [int(v) for v in request.args.get('ndvi_limit_upper').split(',')], [int(v) for v in request.args.get('ndvi_limit_lower').split(',')]))
+
+        next_url_params['ndvi_limit_upper'] = request.args.get('ndvi_limit_upper')
+        next_url_params['ndvi_limit_lower'] = request.args.get('ndvi_limit_lower')
+
+
     for name, column in categorical_columns.iteritems():
         values = request.args.getlist(name)
         if values:
@@ -166,6 +181,9 @@ def image():
         q = q.filter(Location.lat > float(south_west[0]), Location.lon > float(south_west[1]),
                      Location.lat < float(north_east[0]), Location.lon < float(north_east[1]))
 
+    if request.args.get('ndvi_limit_upper') is not None and request.args.get('ndvi_limit_lower') is not None:
+        q = q.filter(func.array_bounds(Record.ndvi, [int(v) for v in request.args.get('ndvi_limit_upper').split(',')], [int(v) for v in request.args.get('ndvi_limit_lower').split(',')]))
+
     for name, column in categorical_columns.iteritems():
         values = request.args.getlist(name)
         if values:
@@ -198,13 +216,15 @@ def image():
                     segments = 0
                 continue
 
+            x, y = (i * 52.17, 1000 - max(3, min(val, 1000)))
+
             if path is None:
-                path = "M%d %d" % (i*52.17 + 150, 1000 - max(0, min(val, 1000)))
+                path = "M%d %d" % (x, y)
             else:
                 if segments == 1:
-                    path += "L%d %d" % (i*52.17 + 150, 1000 - max(0, min(val, 1000)))
+                    path += "L%d %d" % (x, y)
                 else:
-                    path += " %d %d" % (i*52.17 + 150, 1000 - max(0, min(val, 1000)))
+                    path += " %d %d" % (x, y)
 
             if i + 1 == len(r[0].ndvi):
                 paths += '<path d="' + path + '"/>'
@@ -214,30 +234,33 @@ def image():
 
             segments += 1
 
-    svg = '''<svg viewbox="0 0 1300 1070" preserveAspectRatio="xMidYMid meet">
-                <g class="paths" fill="none" stroke="black" stroke-width="2">''' + paths + '''</g>
-                <g class="y labels" font-size="45">
-                    <text x="90" y="40"  text-anchor="end" alignment-baseline="start">1</text>
-                    <text x="90" y="280" text-anchor="end" alignment-baseline="start">0.75</text>
-                    <text x="90" y="530" text-anchor="end" alignment-baseline="start">0.5</text>
-                    <text x="90" y="780" text-anchor="end" alignment-baseline="start">0.25</text>
-                    <text x="90" y="1010" text-anchor="end" alignment-baseline="start">0</text>
+    svg = '''<svg viewbox="0 0 1500 1210" preserveAspectRatio="xMidYMid meet">
+                <g transform="translate(20,20)">
+                    <g class="paths" fill="none" stroke="black" stroke-width="2" transform="translate(150,0)">''' + paths + '''</g>
+                    <g class="y labels" font-size="45">
+                        <text x="90" y="40"  text-anchor="end" alignment-baseline="start">1</text>
+                        <text x="90" y="280" text-anchor="end" alignment-baseline="start">0.75</text>
+                        <text x="90" y="530" text-anchor="end" alignment-baseline="start">0.5</text>
+                        <text x="90" y="780" text-anchor="end" alignment-baseline="start">0.25</text>
+                        <text x="90" y="1010" text-anchor="end" alignment-baseline="start">0</text>
+                    </g>
+                    <polyline class="axis" fill="none" stroke="#000000" points="110,10 110,1000 1330,1000 "></polyline>
+                    <g class="y labels" font-size="45">
+                        <text x="115" y="1050" alignment-baseline="start">Jan</text>
+                        <text x="215" y="1050" alignment-baseline="start">Feb</text>
+                        <text x="315" y="1050" alignment-baseline="start">Mar</text>
+                        <text x="415" y="1050" alignment-baseline="start">Apr</text>
+                        <text x="515" y="1050" alignment-baseline="start">May</text>
+                        <text x="615" y="1050" alignment-baseline="start">Jun</text>
+                        <text x="715" y="1050" alignment-baseline="start">Jul</text>
+                        <text x="815" y="1050" alignment-baseline="start">Aug</text>
+                        <text x="915" y="1050" alignment-baseline="start">Sep</text>
+                        <text x="1015" y="1050" alignment-baseline="start">Oct</text>
+                        <text x="1115" y="1050" alignment-baseline="start">Nov</text>
+                        <text x="1215" y="1050" alignment-baseline="start">Dec</text>
+                    </g>
                 </g>
-                <polyline class="axis" fill="none" stroke="#000000" points="110,10 110,1000 1350,1000 "></polyline>
-                <g class="y labels" font-size="45">
-                    <text x="115" y="1050" alignment-baseline="start">Jan</text>
-                    <text x="215" y="1050" alignment-baseline="start">Feb</text>
-                    <text x="315" y="1050" alignment-baseline="start">Mar</text>
-                    <text x="415" y="1050" alignment-baseline="start">Apr</text>
-                    <text x="515" y="1050" alignment-baseline="start">May</text>
-                    <text x="615" y="1050" alignment-baseline="start">Jun</text>
-                    <text x="715" y="1050" alignment-baseline="start">Jul</text>
-                    <text x="815" y="1050" alignment-baseline="start">Aug</text>
-                    <text x="915" y="1050" alignment-baseline="start">Sep</text>
-                    <text x="1015" y="1050" alignment-baseline="start">Oct</text>
-                    <text x="1115" y="1050" alignment-baseline="start">Nov</text>
-                    <text x="1215" y="1050" alignment-baseline="start">Dec</text>
-                </g>
+                <g data-temporal-bounds transform="translate(150,0)" data-intervals="23" data-interval-width="52.17"></g>
                   Sorry, your browser does not support inline SVG.
             </svg>'''
 
