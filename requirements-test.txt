@@ -5,4 +5,3 @@ pytest-flakes>=0.2
 pytest-pep8>=1.0.5
 tox>=1.7.0
 responses>=0.5.1
-six
