@@ -22,6 +22,8 @@ Flask-Mail
 
 # Other
 passlib
+python-dateutil==2.4.1
+oauth2client==2.0.1
 earthengine-api
 google-api-python-client
 uritemplate
@@ -37,4 +39,3 @@ pyproj
 geopy
 six
 newrelic
-#locustio

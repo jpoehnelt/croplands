@@ -2,13 +2,18 @@ from unittest import TestCase
 import json
 import datetime
 import base64
-from gfsad import create_app, db, limiter
-from gfsad.auth import make_jwt
-from gfsad.models import User
-from gfsad.exceptions import Unauthorized
+from croplands_api import create_app, db, limiter
+from croplands_api.auth import make_jwt
+from croplands_api.models import User
+from croplands_api.exceptions import Unauthorized
 
 
 def get_payload(token):
+    """
+    Get payload from jwt.
+    :param token: String
+    :return: Payload dict
+    """
     encoded_payload = token.split(".")[1].strip()
     encoded_payload += '=' * (len(encoded_payload) % 4)
     return json.loads(base64.b64decode(encoded_payload))
@@ -31,7 +36,7 @@ class TestApi(TestCase):
     @classmethod
     def setUpClass(cls):
         super(TestApi, cls).setUpClass()
-        cls.app = create_app('Testing')
+        cls.app = create_app()
         with cls.app.app_context():
             db.create_all()
 
@@ -84,17 +89,19 @@ class TestApi(TestCase):
             user.role = 'admin'
             headers = [('Content-Type', 'application/json'),
                        ('authorization', 'bearer ' + make_jwt(user))]
-            response = c.patch('/api/users/%d' % other.id, headers=headers, data=json.dumps(me))
+            c.patch('/api/users/%d' % other.id, headers=headers, data=json.dumps(me))
 
     def test_api_role(self):
         with self.app.test_request_context() as request_ctx:
-            from gfsad.views.api.processors import api_roles
-
+            from croplands_api.views.api.processors import api_roles
 
             def api_roles_wrapper(role):
                 """
-                Wrapper function for testing api_roles
+                Help for roles in test
+                :param role:
+                :return:
                 """
+
                 api_roles(role)()
 
             # should not be authorized for any of these since current user is none
@@ -152,10 +159,11 @@ class TestApi(TestCase):
             self.assertAlmostEquals(response_data['lat'], data['lat'], places=1)
             self.assertAlmostEquals(response_data['lon'], data['lon'], places=1)
 
-            from gfsad.utils.geo import distance
+            from croplands_api.utils.geo import distance
 
             self.assertAlmostEquals(data['distance'], distance(data['lat'], data['lon'],
-                                    response_data['lat'], response_data['lon']), 1)
+                                                               response_data['lat'],
+                                                               response_data['lon']), 1)
 
             # missing distance
             data = {'lat': 46, 'lon': -90, 'bearing': 45}
@@ -186,7 +194,7 @@ class TestApi(TestCase):
                     'records': [{'year': 2014, 'month': 1}],
                     'images': [
                         {'url': 'adsf', 'lat': 0.01, 'lon': 0.0123, 'date_acquired': '2012-10-01'}]
-            }
+                    }
             post = c.post('/api/locations', headers=user_headers, data=json.dumps(data))
             response = json.loads(post.data)
 
@@ -207,7 +215,7 @@ class TestApi(TestCase):
                     'records': [{'year': 2014, 'month': 1}],
                     'images': [
                         {'url': 'adsf', 'lat': 0.01, 'lon': 0.0123, 'date_acquired': '2012-10-01'}]
-            }
+                    }
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
             response = json.loads(post.data)
             self.assertEqual(len(data['records']), len(response['records']))
@@ -218,18 +226,17 @@ class TestApi(TestCase):
                     'records': [{'year': 2014, 'month': 1}],
                     'images': [{'url': 'adsfasd', 'lat': 0.01, 'lon': 0.0123,
                                 'date_acquired': '2012-10-01'}]
-            }
+                    }
             post = c.post('/api/locations', headers=user_headers, data=json.dumps(data))
             response = json.loads(post.data)
             self.assertEqual(len(data['records']), len(response['records']))
             self.assertEqual(response['user_id'], response['records'][0]['user_id'])
 
-
     def test_location_create_duplicate(self):
         with self.app.test_client() as c:
             data = {'lat': 0, 'lon': 0, 'records': []}
             headers = [('Content-Type', 'application/json')]
-            post = c.post('/api/locations', headers=headers, data=json.dumps(data))
+            c.post('/api/locations', headers=headers, data=json.dumps(data))
             post = c.post('/api/locations', headers=headers, data=json.dumps(data))
             print json.loads(post.data)
             self.assertEqual(post.status_code, 400)
@@ -341,19 +348,22 @@ class TestApi(TestCase):
             record = json.loads(post.data)
             self.assertEqual(record['source_type'], 'unknown')
 
-            data = {'year': 2013, 'month': 1, 'location_id': location['id'], 'source_type': 'derived'}
+            data = {'year': 2013, 'month': 1, 'location_id': location['id'],
+                    'source_type': 'derived'}
             post = c.post('/api/records', headers=headers, data=json.dumps(data))
             self.assertEqual(post.status_code, 201)
             record = json.loads(post.data)
             self.assertEqual(record['source_type'], 'derived')
 
-            data = {'year': 2012, 'month': 1, 'location_id': location['id'], 'source_type': 'ground'}
+            data = {'year': 2012, 'month': 1, 'location_id': location['id'],
+                    'source_type': 'ground'}
             post = c.post('/api/records', headers=headers, data=json.dumps(data))
             self.assertEqual(post.status_code, 201)
             record = json.loads(post.data)
             self.assertEqual(record['source_type'], 'ground')
 
-            data = {'year': 2011, 'month': 1, 'location_id': location['id'], 'source_type': 'this is not a valid source type'}
+            data = {'year': 2011, 'month': 1, 'location_id': location['id'],
+                    'source_type': 'this is not a valid source type'}
             post = c.post('/api/records', headers=headers, data=json.dumps(data))
             self.assertEqual(post.status_code, 400)
 
@@ -382,8 +392,8 @@ class TestApi(TestCase):
             post = c.post('/api/records', headers=user_headers, data=json.dumps(data_record))
             record = json.loads(post.data)
 
-            patch = c.patch('/api/records/%d' % record['id'], headers=user_headers,
-                            data=json.dumps(record))
+            c.patch('/api/records/%d' % record['id'], headers=user_headers,
+                    data=json.dumps(record))
 
     def test_record_delete(self):
         pass
@@ -411,7 +421,7 @@ class TestApi(TestCase):
             self.assertEqual(len(record['history']), 1)
             self.assertAlmostEqual(datetime.datetime.strptime(record['history'][0]['date_edited'],
                                                               "%Y-%m-%dT%H:%M:%S.%f"),
-                                   datetime.datetime.utcnow(), delta=datetime.timedelta(seconds=3))
+                                   datetime.datetime.now(), delta=datetime.timedelta(seconds=5))
 
             patch = c.patch('/api/records/%d' % record['id'], headers=user_headers,
                             data=json.dumps(data_record))
@@ -419,7 +429,7 @@ class TestApi(TestCase):
             self.assertEqual(len(record['history']), 2)
             self.assertAlmostEqual(datetime.datetime.strptime(record['history'][0]['date_edited'],
                                                               "%Y-%m-%dT%H:%M:%S.%f"),
-                                   datetime.datetime.utcnow(), delta=datetime.timedelta(seconds=3))
+                                   datetime.datetime.now(), delta=datetime.timedelta(seconds=5))
             for history in record['history']:
                 data = json.loads(history['data'])
                 self.assertNotIn('history', data)
@@ -441,7 +451,7 @@ class TestApi(TestCase):
             record = json.loads(post.data)
 
             data_rating = {'rating': 1, 'record_id': record['id']}
-            post = c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
+            c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
 
             # try a duplicate, should replace old
             post = c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
@@ -496,7 +506,7 @@ class TestApi(TestCase):
             post = c.post('/api/records', headers=user_headers, data=json.dumps(data_record))
             record = json.loads(post.data)
             data_rating = {'rating': 1, 'record_id': record['id']}
-            post = c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
+            c.post('/api/ratings', headers=user_headers, data=json.dumps(data_rating))
 
             patch = c.patch('/api/records/%d' % record['id'], headers=user_headers,
                             data=json.dumps(record))
@@ -516,11 +526,9 @@ class TestApi(TestCase):
             user_headers = headers + [('authorization', 'bearer ' + make_jwt(user))]
 
             patch = c.patch('/api/users/%d' % user.id, headers=headers,
-                            data=json.dumps(me)
-            )
+                            data=json.dumps(me))
             self.assertEqual(patch.status_code, 401)
 
             patch = c.patch('/api/users/%d' % user.id, headers=user_headers,
-                            data=json.dumps(me)
-            )
+                            data=json.dumps(me))
             self.assertEqual(patch.status_code, 200)

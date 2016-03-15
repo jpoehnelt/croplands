@@ -1,9 +1,9 @@
-from gfsad import create_app, db, limiter
+from croplands_api import create_app, db, limiter
 from unittest import TestCase
 import json
 import base64
-from gfsad.auth import generate_token, decode_token, get_token_expiration
-from gfsad.models.user import User
+from croplands_api.auth import generate_token, decode_token, get_token_expiration
+from croplands_api.models.user import User
 import time
 from itsdangerous import SignatureExpired
 
@@ -66,7 +66,7 @@ class TestAuthViews(TestCase):
                 response = c.post('/auth/register', headers=headers, data=data)
                 response.json = json.loads(response.data)
                 self.assertEqual(response.status_code, 400)
-                self.assertEqual(response.json['description'], "Missing required data")
+                self.assertEqual(response.json['description'], "Missing or invalid information")
 
     def test_register_token(self):
         self.app.config['AUTH_REQUIRE_CONFIRMATION'] = False
@@ -93,7 +93,7 @@ class TestAuthViews(TestCase):
 
         with self.app.test_client() as c:
             # first user
-            response = c.post('/auth/register', headers=headers, data=json.dumps(me))
+            c.post('/auth/register', headers=headers, data=json.dumps(me))
             # duplicate user
             response = c.post('/auth/register', headers=headers, data=json.dumps(me))
 
@@ -148,11 +148,9 @@ class TestAuthViews(TestCase):
                    data=json.dumps(me))
             for i in range(10):
                 response = c.post('/auth/forgot', headers=headers,
-                              data=json.dumps({'email': me['email']}))
-                print response.headers
+                                  data=json.dumps({'email': me['email']}))
             response.json = json.loads(response.data)
             self.assertEqual(response.json['status_code'], 429)
-
 
     def test_forgot_token(self):
         with self.app.test_client() as c:
@@ -161,8 +159,8 @@ class TestAuthViews(TestCase):
                   'password': 'woot1LoveCookies!', 'email': 'jpoehnelt+test@usgs.gov'}
             headers = [('Content-Type', 'application/json')]
             c.post('/auth/register', headers=headers, data=json.dumps(me))
-            response = c.post('/auth/login', headers=headers,
-                              data=json.dumps({'email': me['email'], 'password': me['password']}))
+            c.post('/auth/login', headers=headers,
+                   data=json.dumps({'email': me['email'], 'password': me['password']}))
             token = generate_token(me, self.app.config['SECRET_KEY'])
 
             # test token within time limit of 300 seconds
@@ -217,7 +215,6 @@ class TestAuthViews(TestCase):
             self.assertEqual(reset.json['status_code'], 200)
             self.assertEqual(reset.json['description'], 'Password was changed')
 
-
     def test_login(self):
         with self.app.test_client() as c:
             # try one that works!
@@ -243,7 +240,8 @@ class TestAuthViews(TestCase):
 
             # check case insensitivity of email
             response = c.post('/auth/login', headers=headers,
-                              data=json.dumps({'email': me['email'].upper(), 'password': me['password']}))
+                              data=json.dumps(
+                                  {'email': me['email'].upper(), 'password': me['password']}))
             self.assertEqual(response.status_code, 200)
 
             # check login without email

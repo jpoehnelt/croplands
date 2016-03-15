@@ -1,12 +1,13 @@
 from unittest import TestCase
 import json
 import base64
-from gfsad import create_app, db, limiter
-from gfsad.models import User
-from gfsad.auth import make_jwt
+from croplands_api import create_app, db, limiter
+from croplands_api.models import User
+from croplands_api.auth import make_jwt
 from StringIO import StringIO
 import os
 import inspect
+
 
 def get_payload(token):
     encoded_payload = token.split(".")[1].strip()
@@ -49,7 +50,6 @@ class TestUpload(TestCase):
         post = c.post('/api/locations', headers=headers, data=json.dumps(data))
         self.assertEqual(post.status_code, 201)
         return json.loads(post.data)
-
 
     def test_image_upload(self):
         with self.app.test_client() as c:

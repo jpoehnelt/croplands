@@ -1,9 +1,10 @@
-from gfsad.tasks import send_email
-from gfsad import create_app
+from croplands_api.tasks import send_email
+from croplands_api import create_app
 import requests
 import unittest
 import json
 from flask_mail import Message
+
 
 class TestEmail(unittest.TestCase):
     app = None
@@ -15,7 +16,6 @@ class TestEmail(unittest.TestCase):
     def setUpClass(cls):
         super(TestEmail, cls).setUpClass()
         cls.app = create_app('Testing')
-
 
     def test_api(self):
         message = json.dumps({
@@ -29,13 +29,14 @@ class TestEmail(unittest.TestCase):
         })
         headers = {'X-Postmark-Server-Token': self.app.config['POSTMARK_API_KEY'],
                    'Content-Type': 'application/json',
-                   'Accept': 'application/json'
-        }
+                   'Accept': 'application/json'}
+
         r = requests.post("https://api.postmarkapp.com/email", message, headers=headers)
 
         assert r.status_code
 
     def test_send_email(self):
         with self.app.app_context():
-            msg = Message(subject="Test", recipients="<Justin.Poehnelt+tests@gmail.com>", body="Test Email")
+            msg = Message(subject="Test", recipients="<Justin.Poehnelt+tests@gmail.com>",
+                          body="Test Email")
             send_email(msg)

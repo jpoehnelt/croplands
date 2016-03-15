@@ -1,10 +1,7 @@
-import datetime
 from unittest import TestCase
-from gfsad import create_app, limiter
-from gfsad.models import Location, db, TimeSeries, User
-import random
-from sqlalchemy.exc import IntegrityError
-from gfsad.utils.geo import get_destination
+from croplands_api import create_app, limiter
+from croplands_api.models import Location, db, User
+from croplands_api.utils.geo import get_destination
 
 
 class TestDatabase(TestCase):
@@ -27,28 +24,6 @@ class TestDatabase(TestCase):
         cls.app = create_app('Testing')
         with cls.app.app_context():
             db.create_all()
-
-    def test_time_series(self):
-        with self.app.app_context():
-            location = Location(lat=0.00, lon=0.00)
-            db.session.add(location)
-            db.session.commit()
-
-            # try with missing location
-            data = TimeSeries(series='modis_ndvi', value=random.randint(-10, 100) / 100.0,
-                              date_acquired=datetime.datetime.utcnow())
-            db.session.add(data)
-            self.assertRaises(IntegrityError, db.session.commit)
-            db.session.rollback()
-
-            # this should work
-            data = TimeSeries(location_id=location.id, series='modis_ndvi',
-                              value=random.randint(-10, 100) / 100.0,
-                              date_acquired=datetime.datetime.utcnow())
-            db.session.add(data)
-            db.session.commit()
-            self.assertAlmostEqual(data.date_updated, datetime.datetime.utcnow(),
-                                   delta=datetime.timedelta(seconds=1))
 
     def test_user_email_case_insensitivity(self):
         """
@@ -126,5 +101,3 @@ class TestDatabase(TestCase):
             db.session.commit()
 
             self.assertEqual(True, l3.use_invalid)
-            print l3.__dict__
-
