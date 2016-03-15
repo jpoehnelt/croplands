@@ -4,7 +4,7 @@ python:
 - '3.3'
 - '3.4'
 install:
-- travis_retry pip install -r requirements.txt -r requirements-dev.txt -e .
+- travis_retry pip install -r requirements.txt -r requirements-test.txt -e .
 - travis_retry pip install coverage coveralls
 services:
 - redis-server
