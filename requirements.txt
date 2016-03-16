@@ -1,13 +1,6 @@
-# Need cffi so that that python build pack installs libffi
 cffi
-
-# heroku only
 gunicorn
-
-# Flask
 Flask==0.10.1
-
-# Flask Extensions
 Flask-Cache
 Flask-Compress
 Flask-Migrate
@@ -19,8 +12,6 @@ Flask-Testing
 Flask-Limiter
 Flask-Celery-Helper
 Flask-Mail
-
-# Other
 passlib
 python-dateutil==2.4.1
 oauth2client==2.0.1
@@ -38,4 +29,3 @@ beautifulsoup4
 pyproj
 geopy
 six
-newrelic

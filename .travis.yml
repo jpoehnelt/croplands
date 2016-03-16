@@ -10,4 +10,7 @@ before_script:
 - psql -c 'CREATE EXTENSION postgis;' -U postgres -d test
 - psql -c 'CREATE EXTENSION postgis_topology;' -U postgres -d test
 
+install:
+ - pip install tox
+
 script: tox
