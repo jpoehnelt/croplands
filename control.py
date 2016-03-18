@@ -2,8 +2,7 @@
 from flask.ext.migrate import Migrate, MigrateCommand
 from flask.ext.script import Manager
 from celery.bin.celery import main as celery_main
-from gfsad import create_app, db
-from gfsad.models import Location
+from croplands_api import create_app, db
 import json
 import redis
 
@@ -21,7 +20,7 @@ def beat():
 
 
 @manager.command
-def worker(Q="gfsad"):
+def worker(Q="croplands_api"):
     from random import randint
 
     celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
@@ -34,7 +33,7 @@ def worker(Q="gfsad"):
 @manager.command
 def flower():
     with manager.app.app_context():
-        celery_args = ['celery', '-A', 'gfsad', 'flower',
+        celery_args = ['celery', '-A', 'croplands_api', 'flower',
                        '--broker=' + manager.app.config['CELERY_BROKER_URL']]
         return celery_main(celery_args)
 
@@ -42,14 +41,14 @@ def flower():
 @manager.command
 def purge_tasks():
     with manager.app.app_context():
-        celery_args = ['celery', '-A', 'gfsad', 'purge',
+        celery_args = ['celery', '-A', 'croplands_api', 'purge',
                        '--broker=' + manager.app.config['CELERY_BROKER_URL']]
         return celery_main(celery_args)
 
 
 @manager.command
 def random():
-    from gfsad.tasks.high_res_imagery import transform, get_image
+    from croplands_api.tasks.high_res_imagery import transform, get_image
 
     with manager.app.app_context():
         # lat = 43.068887774169625
@@ -71,7 +70,7 @@ def random():
 @manager.command
 def coverage():
     with manager.app.app_context():
-        from gfsad.tasks.high_res_imagery import get_street_view_coverage
+        from croplands_api.tasks.high_res_imagery import get_street_view_coverage
         from random import randint
         # for x in range(0, 2097152):
         # for y in range(500000, 1500000):
@@ -93,8 +92,8 @@ def clear_mapids():
 
 @manager.command
 def ndvi():
-    from gfsad.models import Record
-    from gfsad.tasks.records import get_ndvi
+    from croplands_api.models import Record
+    from croplands_api.tasks.records import get_ndvi
     with manager.app.app_context():
         for r in db.session.query(Record).filter(Record.ndvi==None).all():
             get_ndvi.delay(r.id)
@@ -109,7 +108,7 @@ def reference_data_coverage():
     :return: None
     """
     with manager.app.app_context():
-        from gfsad.tasks.reference_data_coverage import reference_data_coverage_task
+        from croplands_api.tasks.reference_data_coverage import reference_data_coverage_task
         reference_data_coverage_task()
 
 @manager.command
@@ -120,19 +119,9 @@ def fusion():
     :return: None
     """
     with manager.app.app_context():
-        from gfsad.tasks.records import build_fusion_tables
+        from croplands_api.tasks.records import build_fusion_tables
         build_fusion_tables()
 
-@manager.command
-def static_records():
-    """
-    Clears all map ids from the cache. Map ids and tokens are currently stored for
-    between 12 and 24 hours to speed retrieval of tiles from Google Earth Engine.
-    :return: None
-    """
-    with manager.app.app_context():
-        from gfsad.tasks.records import build_static_records
-        build_static_records()
 
 if __name__ == '__main__':
     manager.run()
