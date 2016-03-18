@@ -4,7 +4,7 @@ class FieldError(Exception):
     """
     status_code = 400
 
-    def __init__(self, error=None, description="Missing or invalid information", status_code=400,
+    def __init__(self, error="Bad Request", description="Missing or invalid information", status_code=400,
                  headers=None):
         """
         :param error: name of error

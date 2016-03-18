@@ -57,6 +57,8 @@ class Default(object):
     ALLOWED_IMG_EXTENSIONS = ['jpg', 'png']
     SECRET_KEY = os.urandom(24)
     CSRF_ENABLED = False
+    DATA_DOWNLOAD_LINK_EXPIRATION = 60*5
+    DATA_DOWNLOAD_MAX_PAGE_SIZE = 50000
 
 
 class Testing(Default):

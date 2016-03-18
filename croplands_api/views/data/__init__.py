@@ -1,13 +1,26 @@
-from flask import Blueprint, jsonify, Response, request
+from flask import Blueprint, current_app, Response, request, jsonify, abort
 from croplands_api.models import Record, Location
-from croplands_api import db
+from croplands_api import db, cache
 from croplands_api.exceptions import FieldError
 from requests.models import PreparedRequest
 from flask_jwt import current_user
+from croplands_api.auth import is_anonymous, generate_token, decode_token
 from sqlalchemy import func, asc, desc
-from sqlalchemy.dialects.postgres import ARRAY
+import uuid
 
 data_blueprint = Blueprint('data', __name__, url_prefix='/data')
+
+categorical_columns = {"id": Record.id,
+                       "land_use_type": Record.land_use_type,
+                       "crop_primary": Record.crop_primary,
+                       "crop_secondary": Record.crop_secondary,
+                       "water": Record.water,
+                       "intensity": Record.intensity,
+                       "year": Record.year,
+                       "month": Record.month,
+                       "source_type": Record.source_type,
+                       "country": Location.country,
+                       "use_validation": Location.use_validation}
 
 
 def row_to_list(r, headers=False):
@@ -22,12 +35,14 @@ def row_to_list(r, headers=False):
     if headers:
         return ['id', 'year', 'month', 'lat', 'lon', 'country', 'land_use_type', 'crop_primary',
                 'crop_secondary',
-                'water', 'intensity', 'source_type']
+                'water', 'intensity', 'source_type', 'source_class', 'source_description',
+                'use_validation']
 
     return [r[0].id, r[0].year, r[0].month, round(r[1].lat, 8), round(r[1].lon, 8), r[1].country,
             r[0].land_use_type,
             r[0].crop_primary, r[0].crop_secondary,
-            r[0].water, r[0].intensity, r[0].source_type]
+            r[0].water, r[0].intensity, r[0].source_type, r[0].source_class,
+            r[0].source_description, r[1].use_validation]
 
 
 def safe_for_csv(value):
@@ -47,154 +62,169 @@ def safe_for_csv(value):
         return str(value)
 
 
-@data_blueprint.route('/search')
-def search():
-    try:
-        page = int(request.args.get('page', 1))
-        page_size = int(request.args.get('page_size', 1000))
-    except ValueError:
-        raise FieldError(description="Invalid page or page size")
+def query(meta=None, filters=None, count_all=False, count_filtered=False):
+    if filters is None:
+        filters = {}
 
-    order_by = request.args.get('order_by')
-    order_by_direction = request.args.get('order_by_direction', 'asc')
-
-    if page <= 0 or page_size < 10 or page_size > 1000:
-        raise FieldError(description="Invalid page or page size")
-
-    categorical_columns = {"land_use_type": Record.land_use_type,
-                           "crop_primary": Record.crop_primary,
-                           "crop_secondary": Record.crop_secondary,
-                           "water": Record.water,
-                           "intensity": Record.intensity,
-                           "year": Record.year,
-                           "month": Record.month,
-                           "source_type": Record.source_type,
-                           "country": Location.country,
-                           "use_validation": Location.use_validation}
+    if meta is None:
+        meta = {
+            "offset": 0,
+            "limit": 1000,
+            "order_by": 'id'
+        }
 
     q = db.session.query(Record, Location).join(Location).filter(Location.id == Record.location_id)
 
-    if current_user._get_current_object() is None or current_user.role not in ['validation',
-                                                                               'admin']:
-        q = q.filter(Location.use_validation == False)
-
-    count_total = q.count()
-
-    next_url_params = {}
+    if count_all:
+        return q.count()
 
     # filter by bounds
-    if request.args.get('southWestBounds') is not None and request.args.get(
-            'northEastBounds') is not None:
-        south_west = request.args.get('southWestBounds').split(',')
-        north_east = request.args.get('northEastBounds').split(',')
+    if 'southWestBounds' in filters and 'northEastBounds' in filters:
+        south_west = filters['southWestBounds'].split(',')
+        north_east = filters['northEastBounds'].split(',')
         q = q.filter(Location.lat > float(south_west[0]), Location.lon > float(south_west[1]),
                      Location.lat < float(north_east[0]), Location.lon < float(north_east[1]))
 
-        next_url_params['northEastBounds'] = request.args.get('northEastBounds')
-        next_url_params['southWestBounds'] = request.args.get('southWestBounds')
+    if 'ndvi_limit_lower' in filters and 'ndvi_limit_upper' in filters:
+        upper = [int(v) for v in filters['ndvi_limit_upper'].split(',')]
+        lower = [int(v) for v in filters['ndvi_limit_lower'].split(',')]
+        q = q.filter(func.array_bounds(Record.ndvi, upper, lower))
+
+    for name, column in categorical_columns.iteritems():
+        if name not in filters:
+            continue
+        values = filters[name]
+        if values:
+            q = q.filter(column.in_(values))
+
+    if count_filtered:
+        return q.count()
+
+    # order by
+    if meta["order_by"] and meta["order_by"] in categorical_columns or meta[
+        "order_by_direction"] == 'rand':
+        if meta["order_by_direction"].lower() == 'desc':
+            q = q.order_by(desc(categorical_columns[meta["order_by"]]))
+        elif meta["order_by_direction"].lower() == 'rand':
+            q = q.order_by(func.random())
+        else:
+            q = q.order_by(asc(categorical_columns[meta["order_by"]]))
+    else:
+        q = q.order_by(asc(Record.id))
+
+    results = q.offset(meta["offset"]).limit(meta["limit"]).all()
+
+    return results
 
 
+def result_generator(results):
+    for i, r in enumerate(results):
+        if i == 0:
+            yield ','.join(row_to_list(None, headers=True)) + '\n'
+        yield ','.join([safe_for_csv(c) for c in row_to_list(r)]) + '\n'
 
-    if request.args.get('ndvi_limit_upper') is not None and request.args.get('ndvi_limit_lower') is not None:
-        # q = q.filter(func.array_bounds(Record.ndvi, '{' + ",".join([str(int(v)) for v in request.args.get('ndvi_limit_upper').split(',')]) + '}', '{' + ",".join([str(int(v)) for v in request.args.get('ndvi_limit_lower').split(',')]) + '}'))
-        q = q.filter(func.array_bounds(Record.ndvi, [int(v) for v in request.args.get('ndvi_limit_upper').split(',')], [int(v) for v in request.args.get('ndvi_limit_lower').split(',')]))
 
-        next_url_params['ndvi_limit_upper'] = request.args.get('ndvi_limit_upper')
-        next_url_params['ndvi_limit_lower'] = request.args.get('ndvi_limit_lower')
+def get_filters():
+    filters = {}
 
+    if is_anonymous() or current_user.role not in ['validation', 'admin']:
+        filters['use_validation'] = [False]
+        print(is_anonymous())
+
+    if request.args.get('southWestBounds') is not None and request.args.get(
+            'northEastBounds') is not None:
+        filters['northEastBounds'] = request.args.get('northEastBounds')
+        filters['southWestBounds'] = request.args.get('southWestBounds')
+
+    if request.args.get('ndvi_limit_upper') is not None and request.args.get(
+            'ndvi_limit_lower') is not None:
+        filters['ndvi_limit_upper'] = request.args.get('ndvi_limit_upper')
+        filters['ndvi_limit_lower'] = request.args.get('ndvi_limit_lower')
+
+        if len(filters['ndvi_limit_upper'].split(',')) != 23 or len(
+                filters['ndvi_limit_lower'].split(',')) != 23:
+            raise FieldError(description="Invalid Array Bounds Length")
 
     for name, column in categorical_columns.iteritems():
         values = request.args.getlist(name)
         if values:
-            q = q.filter(column.in_(values))
-            next_url_params[name] = values
+            filters[name] = values
+    return filters
 
-    count_filtered = q.count()
 
-    # order by
-    if order_by and order_by in categorical_columns:
-        if order_by_direction == 'desc':
-            q = q.order_by(desc(categorical_columns[order_by]))
-        else:
-            q = q.order_by(asc(categorical_columns[order_by]))
+def get_meta():
+    try:
+        page = int(request.args.get('page', 1))
+        page_size = min(int(request.args.get('page_size', 1000)), current_app.config.get('DATA_DOWNLOAD_MAX_PAGE_SIZE'))
+    except ValueError:
+        raise FieldError(description="Invalid page or page size")
 
-        # save url params
-        next_url_params[order_by] = order_by
-        next_url_params[order_by_direction] = order_by_direction
-    else:
-        q = q.order_by(asc(Record.id))
+    offset = (page - 1) * page_size
+    if offset < 0:
+        raise FieldError(description="Invalid page or page size")
 
-    results = q.offset((page - 1) * page_size).limit(page_size).all()
+    order_by = request.args.get('order_by', 'id')
+    if order_by not in categorical_columns:
+        raise FieldError(description="Invalid order by column")
+    order_by_direction = request.args.get('order_by_direction', 'desc')
 
-    # next page
+    return {
+        "page": page,
+        "page_size": page_size,
+        "offset": offset,
+        "limit": min(page_size, 100000),
+        "order_by": order_by,
+        "order_by_direction": order_by_direction
+    }
+
+
+@data_blueprint.route('/search')
+def search():
+    meta = get_meta()
+    filters = get_filters()
+
+    # get counts
+    count_total = query(count_all=True)
+    count_filtered = query(filters=filters, count_filtered=True)
+
+    # build response
+    results = query(meta=meta, filters=filters)
 
     headers = {
         "Query-Count-Total": str(count_total),
         "Query-Count-Filtered": str(count_filtered),
         "Cache-Control": "max-age=259200",
         "Access-Control-Expose-Headers": "Query-Count-Total, Query-Count-Filtered, Query-Next"
-
     }
 
-    if count_filtered > page * page_size:
-        next_url_params['page'] = str(page + 1)
-        next_url_params['page_size'] = str(page_size)
+    if count_filtered > meta["page"] * meta["limit"]:
+        next_url_params = {
+            'page': str(meta["page"] + 1),
+            'page_size': str(meta["limit"]),
+            'order_by': meta["order_by"],
+            'order_by_direction': meta["order_by_direction"]
+        }
+        next_url_params.update(filters)
         next_request = PreparedRequest()
         next_request.prepare_url(request.base_url, next_url_params)
         headers['Query-Next'] = next_request.url
 
-
-    def generate():
-        for i, r in enumerate(results):
-            if i == 0:
-                yield ','.join(row_to_list(None, headers=True)) + '\n'
-            yield ','.join([safe_for_csv(c) for c in row_to_list(r)]) + '\n'
-
-    return Response(generate(), headers=[(k, v) for k, v in headers.iteritems()],
+    return Response(result_generator(results), headers=[(k, v) for k, v in headers.iteritems()],
                     mimetype='text/csv')
 
 
 @data_blueprint.route('/image')
 def image():
-    categorical_columns = {"land_use_type": Record.land_use_type,
-                           "crop_primary": Record.crop_primary,
-                           "crop_secondary": Record.crop_secondary,
-                           "water": Record.water,
-                           "intensity": Record.intensity,
-                           "year": Record.year,
-                           "month": Record.month,
-                           "source_type": Record.source_type,
-                           "country": Location.country,
-                           "use_validation": Location.use_validation}
+    filters = get_filters()
+    meta = {
+        "order_by": "id",
+        "order_by_direction": "rand",
+        "limit": 1000,
+        "offset": 0
+    }
 
-    q = db.session.query(Record, Location).join(Location).filter(Location.id == Record.location_id)
-
-    if current_user._get_current_object() is None or current_user.role not in ['validation',
-                                                                               'admin']:
-        q = q.filter(Location.use_validation == False)
-
-    # filter by bounds
-    if request.args.get('southWestBounds') is not None and request.args.get(
-            'northEastBounds') is not None:
-        south_west = request.args.get('southWestBounds').split(',')
-        north_east = request.args.get('northEastBounds').split(',')
-        q = q.filter(Location.lat > float(south_west[0]), Location.lon > float(south_west[1]),
-                     Location.lat < float(north_east[0]), Location.lon < float(north_east[1]))
-
-    if request.args.get('ndvi_limit_upper') is not None and request.args.get('ndvi_limit_lower') is not None:
-        q = q.filter(func.array_bounds(Record.ndvi, [int(v) for v in request.args.get('ndvi_limit_upper').split(',')], [int(v) for v in request.args.get('ndvi_limit_lower').split(',')]))
-
-    for name, column in categorical_columns.iteritems():
-        values = request.args.getlist(name)
-        if values:
-            q = q.filter(column.in_(values))
-
-    # q = q.filter(Record.ndvi != None)
-    q = q.order_by(func.random())
-
-    results = q.limit(1000).all()
-
-    # next page
+    # build response
+    results = query(meta, filters=filters)
 
     headers = {
         "Cache-Control": "max-age=259200"
@@ -265,3 +295,38 @@ def image():
             </svg>'''
 
     return Response(svg, headers=[(k, v) for k, v in headers.iteritems()], mimetype='image/svg+xml')
+
+
+@data_blueprint.route('/link')
+def link():
+    meta = get_meta()
+    filters = get_filters()
+
+    data = {
+        "meta": meta,
+        "filters": filters
+    }
+
+    key = str(uuid.uuid4()).replace("-", "")
+    token = generate_token(key, current_app.config.get('SECRET_KEY'))
+
+    cache.set(key, data, timeout=current_app.config.get('DATA_DOWNLOAD_LINK_EXPIRATION'))
+
+    return jsonify({
+        "search": data,
+        "token": token
+    })
+
+
+@data_blueprint.route("/download")
+def download():
+    try:
+        token = request.args.get('token', None)
+        key = decode_token(token, current_app.config.get('SECRET_KEY'),
+                           current_app.config.get('DATA_DOWNLOAD_LINK_EXPIRATION'))
+        data = cache.get(key)
+    except ValueError:
+        abort(404)
+    else:
+        results = query(meta=data['meta'], filters=data['filters'])
+        return Response(result_generator(results), mimetype='text/csv')
