@@ -53,7 +53,12 @@ def safe_for_csv(value):
     :return: string
     """
     escape_chars = ["'", "\""]
-    value.replace(",", "_")
+
+    try:
+        value = value.replace(",", "_")
+    except AttributeError:
+        pass
+
     if value is None:
         return ""
     elif any((c in str(value) for c in escape_chars)):
