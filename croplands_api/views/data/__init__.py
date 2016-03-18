@@ -52,8 +52,8 @@ def safe_for_csv(value):
     :param value: anything
     :return: string
     """
-    escape_chars = [",", "'", "\""]
-
+    escape_chars = ["'", "\""]
+    value.replace(",", "_")
     if value is None:
         return ""
     elif any((c in str(value) for c in escape_chars)):
@@ -129,7 +129,6 @@ def get_filters():
 
     if is_anonymous() or current_user.role not in ['validation', 'admin']:
         filters['use_validation'] = [False]
-        print(is_anonymous())
 
     if request.args.get('southWestBounds') is not None and request.args.get(
             'northEastBounds') is not None:
