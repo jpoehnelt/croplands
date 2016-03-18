@@ -30,7 +30,6 @@ def decode_token(token, secret, max_age=3600):
 
     s = URLSafeTimedSerializer(secret_key=secret)
     ret = s.loads(token, max_age=max_age)
-    print ret
     return ret
 
 
