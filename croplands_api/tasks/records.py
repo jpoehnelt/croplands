@@ -1,3 +1,4 @@
+from flask import current_app
 from croplands_api import celery
 from croplands_api.models import db, Record
 from croplands_api.utils.google.fusion import replace_rows
@@ -78,7 +79,10 @@ def get_ndvi(id=None, record=None):
     print("Record #%d NDVI Series Updated. Mean: %d" % (record.id, record.ndvi_mean))
 
     db.session.commit()
-    get_ndvi.apply_async(args=[id, record], eta=eta)
+
+    # todo fix for testing...
+    if current_app.config['ENV'] != 'TESTING':
+        get_ndvi.apply_async(args=[id, record], eta=eta)
 
 
 @celery.task()
