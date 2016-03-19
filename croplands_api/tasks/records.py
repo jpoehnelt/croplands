@@ -54,7 +54,7 @@ def get_ndvi(id=None, record=None):
     :param record: Record
     :return: None
     """
-    repeat = False
+    eta = datetime.utcnow() + timedelta(days=150)
 
     if id is not None and record is None:
         record = db.session.query(Record).filter(Record.id == id).first()
@@ -68,8 +68,7 @@ def get_ndvi(id=None, record=None):
 
     if len(series23) < 23:
         series23 += [None for i in range(23 - len(series23))]
-        repeat = True
-
+        eta = datetime.utcnow() + timedelta(days=10)
 
     assert len(series23) == 23
 
@@ -77,14 +76,9 @@ def get_ndvi(id=None, record=None):
     record.ndvi = series23
 
     print("Record #%d NDVI Series Updated. Mean: %d" % (record.id, record.ndvi_mean))
-    db.session.commit()
 
-    if repeat:
-        eta = datetime.utcnow() + timedelta(days=30)
-        get_ndvi.apply_async(args=[id, record], eta=eta)
-    else:
-        eta = datetime.utcnow() + timedelta(days=150)
-        get_ndvi.apply_async(args=[id, record], eta=eta)
+    db.session.commit()
+    get_ndvi.apply_async(args=[id, record], eta=eta)
 
 
 @celery.task()
