@@ -111,6 +111,7 @@ class Production(Development):
     REDIS_URL = os.environ.get('REDIS_URL')
     CACHE_REDIS_URL = REDIS_URL
     RATELIMIT_STORAGE_URL = REDIS_URL
+    CELERY_BROKER_URL = REDIS_URL
 
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
