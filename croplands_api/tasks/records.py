@@ -6,7 +6,7 @@ from croplands_api.utils.mappings import get_crop_label, get_intensity_label, ge
     get_water_label
 import StringIO
 import csv
-
+from datetime import datetime, timedelta
 
 def status(so_far, total):
     print '%d bytes transferred out of %d' % (so_far, total)
@@ -54,6 +54,8 @@ def get_ndvi(id=None, record=None):
     :param record: Record
     :return: None
     """
+    repeat = False
+
     if id is not None and record is None:
         record = db.session.query(Record).filter(Record.id == id).first()
 
@@ -64,6 +66,11 @@ def get_ndvi(id=None, record=None):
 
     series23 = [(row['NDVI'] / 10) if row['NDVI'] is not None else None for row in results]
 
+    if len(series23) < 23:
+        series23 += [None for i in range(23 - len(series23))]
+        repeat = True
+
+
     assert len(series23) == 23
 
     record.ndvi_mean = int(mean(series23))
@@ -71,6 +78,13 @@ def get_ndvi(id=None, record=None):
 
     print("Record #%d NDVI Series Updated. Mean: %d" % (record.id, record.ndvi_mean))
     db.session.commit()
+
+    if repeat:
+        eta = datetime.utcnow() + timedelta(days=30)
+        get_ndvi.apply_async(args=[id, record], eta=eta)
+    else:
+        eta = datetime.utcnow() + timedelta(days=150)
+        get_ndvi.apply_async(args=[id, record], eta=eta)
 
 
 @celery.task()
