@@ -1,5 +1,5 @@
 from flask import Blueprint, current_app, Response, request, jsonify, abort
-from croplands_api.models import Record, Location
+from croplands_api.models import Record, Location, Image
 from croplands_api import db, cache
 from croplands_api.exceptions import FieldError
 from requests.models import PreparedRequest
@@ -7,6 +7,7 @@ from flask_jwt import current_user
 from croplands_api.auth import is_anonymous, generate_token, decode_token
 from sqlalchemy import func, asc, desc
 import uuid
+import datetime
 
 data_blueprint = Blueprint('data', __name__, url_prefix='/data')
 
@@ -78,7 +79,8 @@ def query(meta=None, filters=None, count_all=False, count_filtered=False):
             "order_by": 'id'
         }
 
-    q = db.session.query(Record, Location).join(Location).filter(Location.id == Record.location_id)
+    q = db.session.query(Record, Location)\
+        .join(Location).filter(Location.id == Record.location_id)
 
     if count_all:
         return q.count()
@@ -101,6 +103,13 @@ def query(meta=None, filters=None, count_all=False, count_filtered=False):
         values = filters[name]
         if values:
             q = q.filter(column.in_(values))
+
+    if 'delay' in filters and filters['delay']:
+        q = q.filter(Record.date_created < datetime.datetime.utcnow() - current_app.config.get(
+            'DATA_QUERY_DELAY'))
+        print('delay', datetime.datetime.utcnow() - current_app.config.get(
+            'DATA_QUERY_DELAY'))
+
 
     if count_filtered:
         return q.count()
@@ -149,6 +158,8 @@ def get_filters():
                 filters['ndvi_limit_lower'].split(',')) != 23:
             raise FieldError(description="Invalid Array Bounds Length")
 
+    filters['delay'] = request.args.get('delay', 'true') == 'true'
+
     for name, column in categorical_columns.iteritems():
         values = request.args.getlist(name)
         if values:
@@ -156,10 +167,10 @@ def get_filters():
     return filters
 
 
-def get_meta():
+def get_meta(page_size=1000):
     try:
         page = int(request.args.get('page', 1))
-        page_size = min(int(request.args.get('page_size', 1000)), current_app.config.get('DATA_DOWNLOAD_MAX_PAGE_SIZE'))
+        page_size = min(int(request.args.get('page_size', page_size)), current_app.config.get('DATA_DOWNLOAD_MAX_PAGE_SIZE'))
     except ValueError:
         raise FieldError(description="Invalid page or page size")
 
@@ -324,13 +335,17 @@ def link():
 
 @data_blueprint.route("/download")
 def download():
-    try:
-        token = request.args.get('token', None)
+    token = request.args.get('token', None)
+    if token:
         key = decode_token(token, current_app.config.get('SECRET_KEY'),
-                           current_app.config.get('DATA_DOWNLOAD_LINK_EXPIRATION'))
+                       current_app.config.get('DATA_DOWNLOAD_LINK_EXPIRATION'))
         data = cache.get(key)
-    except ValueError:
-        abort(404)
+        meta = data['meta']
+        filters = data['filters']
+
     else:
-        results = query(meta=data['meta'], filters=data['filters'])
-        return Response(result_generator(results), mimetype='text/csv')
+        meta = get_meta(page_size=1000000)
+        filters = get_filters()
+
+    results = query(meta=meta, filters=filters)
+    return Response(result_generator(results), mimetype='text/csv')
