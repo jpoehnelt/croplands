@@ -59,6 +59,7 @@ class Default(object):
     CSRF_ENABLED = False
     DATA_DOWNLOAD_LINK_EXPIRATION = 60*5
     DATA_DOWNLOAD_MAX_PAGE_SIZE = 50000
+    DATA_QUERY_DELAY = timedelta(days=150)  # how long until data is publicly available
 
 
 class Testing(Default):
