@@ -1,4 +1,7 @@
-from flask import current_app, Blueprint, jsonify
+from flask import current_app, Blueprint, jsonify, request, _request_ctx_stack, abort
+from werkzeug.urls import BaseURL, url_decode, url_parse
+
+import base64
 
 # create blueprint to separate scope
 public = Blueprint('views', __name__, template_folder='templates')
@@ -19,3 +22,23 @@ def sitemap():
         if rule.endpoint != 'static':
             func_list[rule.rule] = current_app.view_functions[rule.endpoint].__doc__
     return jsonify(func_list)
+
+
+@public.route('/link/<encoded>')
+def forward(encoded):
+    """
+    Decodes a token and looks up the view/endpoint to internally redirect to.
+    :param encoded: Base64 Url Safe containing url
+    :return: Response
+    """
+    ctx = _request_ctx_stack.top
+    try:
+        link = url_parse(base64.urlsafe_b64decode(encoded.encode("utf-8")))
+        scheme, netloc, path, query, fragment = link
+        view, variables = ctx.url_adapter.match(path)  # raises 404
+        endpoint = current_app.view_functions[view]
+        return endpoint(**variables)
+    except UnicodeDecodeError:
+        abort(404)
+
+    abort(400)
