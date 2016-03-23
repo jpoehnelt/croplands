@@ -146,7 +146,7 @@ class TestAuthViews(TestCase):
             headers = [('Content-Type', 'application/json')]
             c.post('/auth/register', headers=headers,
                    data=json.dumps(me))
-            for i in range(10):
+            for i in range(11):
                 response = c.post('/auth/forgot', headers=headers,
                                   data=json.dumps({'email': me['email']}))
             response.json = json.loads(response.data)
