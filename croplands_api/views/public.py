@@ -1,5 +1,6 @@
 from flask import current_app, Blueprint, jsonify, request, _request_ctx_stack, abort
-from werkzeug.urls import BaseURL, url_decode, url_parse
+from werkzeug.urls import url_decode, url_parse
+from werkzeug.datastructures import MultiDict
 
 import base64
 
@@ -31,10 +32,13 @@ def forward(encoded):
     :param encoded: Base64 Url Safe containing url
     :return: Response
     """
+    request.parameter_storage_class = MultiDict
+
     ctx = _request_ctx_stack.top
     try:
         link = url_parse(base64.urlsafe_b64decode(encoded.encode("utf-8")))
         scheme, netloc, path, query, fragment = link
+        request.args = url_decode(query)
         view, variables = ctx.url_adapter.match(path)  # raises 404
         endpoint = current_app.view_functions[view]
         return endpoint(**variables)
