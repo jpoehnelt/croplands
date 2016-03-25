@@ -141,6 +141,11 @@ def result_generator(results):
 def get_filters():
     filters = {}
 
+    if is_anonymous():
+        filters['delay'] = request.args.get('d', 1) == 1
+    else:
+        filters['delay'] = request.args.get('d', 0) == 1
+
     if is_anonymous() or current_user.role not in ['validation', 'admin']:
         filters['use_validation'] = [False]
 
@@ -157,8 +162,6 @@ def get_filters():
         if len(filters['ndvi_limit_upper'].split(',')) != 23 or len(
                 filters['ndvi_limit_lower'].split(',')) != 23:
             raise FieldError(description="Invalid Array Bounds Length")
-
-    filters['delay'] = request.args.get('delay', 'true') == 'true'
 
     for name, column in categorical_columns.iteritems():
         values = request.args.getlist(name)
@@ -187,7 +190,7 @@ def get_meta(page_size=1000):
         "page": page,
         "page_size": page_size,
         "offset": offset,
-        "limit": min(page_size, 100000),
+        "limit": min(page_size, 1000000),
         "order_by": order_by,
         "order_by_direction": order_by_direction
     }
@@ -335,17 +338,24 @@ def link():
 
 @data_blueprint.route("/download")
 def download():
-    token = request.args.get('token', None)
-    if token:
-        key = decode_token(token, current_app.config.get('SECRET_KEY'),
-                       current_app.config.get('DATA_DOWNLOAD_LINK_EXPIRATION'))
-        data = cache.get(key)
-        meta = data['meta']
-        filters = data['filters']
 
-    else:
-        meta = get_meta(page_size=1000000)
-        filters = get_filters()
+    meta = get_meta(page_size=1000000)
+    filters = get_filters()
 
     results = query(meta=meta, filters=filters)
+    return Response(result_generator(results), mimetype='text/csv')
+
+@data_blueprint.route("/download/<country>")
+def download_country(country):
+    meta = get_meta(page_size=1000000)
+    filters = get_filters()
+    print(request.args)
+
+    filters['use_validation'] = [False, True]
+    filters['country'] = [country]
+    filters['delay'] = False
+    print(filters)
+
+    results = query(meta=meta, filters=filters)
+    print(results)
     return Response(result_generator(results), mimetype='text/csv')
