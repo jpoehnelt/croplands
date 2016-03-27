@@ -105,7 +105,7 @@ class Production(Development):
     ENV = 'PRODUCTION'
 
     # Amazon
-    AWS_S3_BUCKET = 'gfsad30-test'
+    AWS_S3_BUCKET = 'gfsad30'
 
     # Redis, Cache Etc.
     CACHE_TYPE = 'redis'
