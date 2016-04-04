@@ -45,31 +45,6 @@ def test_link_maximum_page_size(client, app):
     assert search['meta']['page_size'] == app.config['DATA_DOWNLOAD_MAX_PAGE_SIZE']
 
 
-def test_link_token(client, app):
-    r = client.get('/data/link')
-    token = json.loads(r.data)['token']
-    key = decode_token(token, app.config.get("SECRET_KEY"))
-    search = cache.get(key)
-
-    assert search is not None
-    assert 'filters' in search
-    assert 'meta' in search
-
-
-def test_link_token_expiration(client, app):
-    r = client.get('/data/link')
-    token = json.loads(r.data)['token']
-    d = client.get('/data/download', query_string={"token": token})
-
-    assert d.status_code == 200
-
-    app.config['DATA_DOWNLOAD_LINK_EXPIRATION'] = 0
-    time.sleep(1)
-    d = client.get('/data/download', query_string={"token": token})
-
-    assert d.status_code == 401
-
-
 def test_download(client):
     r = client.get('/data/link')
     token = json.loads(r.data)['token']
