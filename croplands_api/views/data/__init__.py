@@ -1,10 +1,10 @@
-from flask import Blueprint, current_app, Response, request, jsonify, abort
-from croplands_api.models import Record, Location, Image
-from croplands_api import db, cache
+from flask import Blueprint, current_app, Response, request, jsonify
+from croplands_api.models import Record, Location
+from croplands_api import db, cache, limiter
 from croplands_api.exceptions import FieldError
 from requests.models import PreparedRequest
 from flask_jwt import current_user
-from croplands_api.auth import is_anonymous, generate_token, decode_token
+from croplands_api.auth import is_anonymous, generate_token
 from sqlalchemy import func, asc, desc
 import uuid
 import datetime
@@ -197,6 +197,7 @@ def get_meta(page_size=1000):
 
 
 @data_blueprint.route('/search')
+@limiter.limit("80 per minute")
 def search():
     meta = get_meta()
     filters = get_filters()
@@ -232,6 +233,7 @@ def search():
 
 
 @data_blueprint.route('/image')
+@limiter.limit("80 per minute")
 def image():
     filters = get_filters()
     meta = {
@@ -315,47 +317,27 @@ def image():
     return Response(svg, headers=[(k, v) for k, v in headers.iteritems()], mimetype='image/svg+xml')
 
 
-@data_blueprint.route('/link')
-def link():
-    meta = get_meta()
-    filters = get_filters()
-
-    data = {
-        "meta": meta,
-        "filters": filters
-    }
-
-    key = str(uuid.uuid4()).replace("-", "")
-    token = generate_token(key, current_app.config.get('SECRET_KEY'))
-
-    cache.set(key, data, timeout=current_app.config.get('DATA_DOWNLOAD_LINK_EXPIRATION'))
-
-    return jsonify({
-        "search": data,
-        "token": token
-    })
-
-
 @data_blueprint.route("/download")
+@limiter.limit("10 per minute")
 def download():
-
     meta = get_meta(page_size=1000000)
     filters = get_filters()
 
     results = query(meta=meta, filters=filters)
     return Response(result_generator(results), mimetype='text/csv')
 
+
 @data_blueprint.route("/download/<country>")
+@limiter.limit("10 per minute")
 def download_country(country):
     meta = get_meta(page_size=1000000)
     filters = get_filters()
-    print(request.args)
 
-    filters['use_validation'] = [False, True]
+    if request.args.get('justin_says', 'nope') == 'yes':
+        filters['use_validation'] = [False, True]
+
     filters['country'] = [country]
     filters['delay'] = False
-    print(filters)
 
     results = query(meta=meta, filters=filters)
-    print(results)
     return Response(result_generator(results), mimetype='text/csv')
