@@ -23,31 +23,3 @@ def test_get_filters_use_validation(request_ctx):
             assert filters['use_validation'] == [False, True]
         else:
             assert filters['use_validation'] == [False]
-
-
-def test_link(client):
-    r = client.get('/data/link')
-
-    assert r.status_code == 200
-
-    data = json.loads(r.data)
-
-    assert 'token' in data
-    assert 'search' in data
-
-
-def test_link_maximum_page_size(client, app):
-    params = {"page_size": app.config['DATA_DOWNLOAD_MAX_PAGE_SIZE'] + 5}
-    r = client.get('/data/link', query_string=params)
-    search = json.loads(r.data)['search']
-
-    assert 'meta' in search
-    assert search['meta']['page_size'] == app.config['DATA_DOWNLOAD_MAX_PAGE_SIZE']
-
-
-def test_download(client):
-    r = client.get('/data/link')
-    token = json.loads(r.data)['token']
-    r = client.get('/data/download', query_string={"token": token})
-
-    assert r.status_code == 200
