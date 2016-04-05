@@ -157,6 +157,7 @@ def create_app(config='Testing'):
     import croplands_api.tasks.high_res_imagery
     import croplands_api.tasks.classifications
     import croplands_api.tasks.reference_data_coverage
+    import croplands_api.tasks.records
 
     return app
 
