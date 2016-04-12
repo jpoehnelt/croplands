@@ -29,3 +29,7 @@ beautifulsoup4
 pyproj
 geopy
 six
+
+
+numpy
+scipy
