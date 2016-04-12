@@ -23,7 +23,7 @@ def beat():
 def worker(Q="croplands_api"):
     from random import randint
 
-    celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
+    celery_args = ['celery', 'worker', '-l', 'warning', '-n', str(chr(randint(71, 93))), '-Q', Q,
                    '--concurrency', '4']
     print " ".join(celery_args)
     with manager.app.app_context():
@@ -45,31 +45,92 @@ def purge_tasks():
                        '--broker=' + manager.app.config['CELERY_BROKER_URL']]
         return celery_main(celery_args)
 
-
 @manager.command
-def random():
-    from croplands_api.tasks.high_res_imagery import transform, get_image
+def get_image():
+    from croplands_api.tasks.high_res_imagery import get_image
 
     with manager.app.app_context():
-        # lat = 43.068887774169625
-        # lon = -74.1796875
-        #
-        # get_image(lat, lon, 18)
-        #
-        with open('random_pts_per_gaul2.json', 'r') as f:
-            features = json.loads(f.read())['features']
-            for feature in features:
-                x = feature['geometry']['x']
-                y = feature['geometry']['y']
 
-                lon, lat = transform(x, y)
+        import sqlite3
+        conn = sqlite3.connect('random_locations')
+        c = conn.cursor()
+        i = 0
+        while True:
+            c.execute('SELECT * FROM pts WHERE sync=0 ORDER BY RANDOM() LIMIT 10')
+            pts = c.fetchall()
 
-                get_image.delay(lat, lon, 18)
+            if len(pts) == 0 or i > 10:
+                break
+
+            for pt in pts:
+                i += 1
+                print("%d %s" % (i, str(pt)))
+                get_image.delay(pt[1], pt[0], 19)
+                c.execute("UPDATE pts SET sync = 1 WHERE id= ?", (pt[3],))
+
+            conn.commit()
+        return
+
+
+@manager.command
+def random(n=10000000):
+    import csv
+    from shapely.geometry import shape, LineString, Point, MultiPolygon
+    from croplands_api.utils.geo import uniform_sample
+    from multiprocessing.pool import ThreadPool
+
+    with manager.app.app_context():
+        with open('countries_small.geojson') as f:
+            features = json.load(f)['features']
+
+        features = [shape(f['geometry']) for f in features if
+                    f['properties']['name'] not in ['Greenland', 'Antarctica']]
+        meridian = LineString([(0, 90), (0, -90)])
+
+
+        def polygonize_with_areas(poly):
+            if poly.intersects(meridian):
+                poly = poly.difference(meridian.buffer(0.01))
+
+            if type(poly) is MultiPolygon:
+                return [(p, p.area) for p in poly.geoms]
+            else:
+                return [(poly, poly.area)]
+
+
+        pool = ThreadPool(30)
+        polygons = [p for r in pool.map(polygonize_with_areas, features) for p in r]
+        pool.close()
+        pool.join()
+        total_area = sum([p[1] for p in polygons])
+        print('sampling %d polygons for %d pts' % (len(polygons), n))
+
+        def sample(args):
+            poly, n, i = args
+            print(i)
+            for pt in uniform_sample(poly, n).tolist():
+                if poly.contains(Point(pt[0], pt[1])):
+                    yield pt
+
+
+        pool = ThreadPool(50)
+        pts = [pt for result in pool.map(sample, [(p[0], int(p[1]/total_area*n), i) for i, p in enumerate(polygons)]) for pt in result]
+        pool.close()
+        pool.join()
+
+        with open('random_%d.csv' % n, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(['longitude', 'latitude'])
+            for pt in pts:
+                writer.writerow(pt)
+
+        return
 
 
 @manager.command
 def coverage():
     with manager.app.app_context():
+        pass
         from croplands_api.tasks.high_res_imagery import get_street_view_coverage
         from random import randint
         # for x in range(0, 2097152):
@@ -120,7 +181,7 @@ def fusion():
     """
     with manager.app.app_context():
         from croplands_api.tasks.records import build_fusion_tables
-        build_fusion_tables()
+        build_fusion_tables.delay()
 
 
 if __name__ == '__main__':
