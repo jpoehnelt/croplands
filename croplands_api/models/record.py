@@ -36,7 +36,7 @@ class Record(db.Model):
                                                                          Image.date_acquired)),
                           foreign_keys=Image.location_id)
     #
-    date_created = db.Column(db.DateTime, default=db.func.now())
+    date_created = db.Column(db.DateTime, default=db.func.now(), index=True)
     date_updated = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     SOURCE_TYPE_CHOICES = ['ground', 'derived', 'unknown']
