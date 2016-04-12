@@ -23,7 +23,7 @@ def beat():
 def worker(Q="croplands_api"):
     from random import randint
 
-    celery_args = ['celery', 'worker', '-l', 'warning', '-n', str(chr(randint(71, 93))), '-Q', Q,
+    celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
                    '--concurrency', '4']
     print " ".join(celery_args)
     with manager.app.app_context():
