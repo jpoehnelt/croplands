@@ -2,8 +2,7 @@ from croplands_api import celery
 from flask import current_app
 import StringIO
 import requests
-from croplands_api.utils.geo import degree_to_tile_number
-from PIL import Image as Img, ImageDraw, ImageFont
+from PIL import Image as Img
 import boto
 from boto.s3.key import Key
 from bs4 import BeautifulSoup
@@ -21,6 +20,8 @@ import uuid
 import json
 import random
 
+from multiprocessing.pool import ThreadPool
+
 
 def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
                   layer="DigitalGlobe:ImageryTileService",
@@ -37,17 +38,58 @@ def _build_dg_url(x, y, zoom, connect_id, request="GetTile",
     :return: url
     """
 
-    url = "https://rdog.digitalglobe.com/earthservice/wmtsaccess?connectid=%s" % connect_id
+    url = "https://evwhs.digitalglobe.com/earthservice/wmtsaccess?connectid=%s" % connect_id
     url += "&request=%s" % request
     url += "&version=1.0.0&LAYER=%s&FORMAT=image/jpeg" % layer
     url += "&TileRow=%d&TileCol=%d&TileMatrixSet=EPSG:3857&TileMatrix=EPSG:3857:%d" % (y, x, zoom)
     url += "&featureProfile=%s" % profile
-    print url
     return url
 
 
-@celery.task(rate_limit="1000/m")
-def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileService"):
+def get_image_data(img):
+    try:
+        exif = img._getexif()
+        soup = BeautifulSoup(exif[37510])
+    except Exception as e:
+        print(e)
+        return
+    else:
+        corner_ne = soup.find_all("gml:uppercorner")[0].string.split()
+        corner_ne_lon, corner_ne_lat = transform(corner_ne[0], corner_ne[1])
+        corner_sw = soup.find_all("gml:lowercorner")[0].string.split()
+        corner_sw_lon, corner_sw_lat = transform(corner_sw[0], corner_sw[1])
+
+        return {
+            'date_acquired': datetime.datetime.strptime(
+                soup.find("digitalglobe:acquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
+            'date_acquired_earliest': datetime.datetime.strptime(
+                soup.find("digitalglobe:earliestacquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
+            'date_acquired_latest': datetime.datetime.strptime(
+                soup.find("digitalglobe:latestacquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
+            'image_type': 'digitalglobe' + soup.find("digitalglobe:producttype").string,
+            'copyright': soup.find("digitalglobe:copyright").string,
+            # 'source': soup.find("digitalglobe:source").string,
+            # 'source_unit': soup.find("digitalglobe:sourceunit").string,
+            # 'data_layer': soup.find("digitalglobe:datalayer").string,
+            'resolution': float(soup.find_all("digitalglobe:groundsampledistance")[0].string),
+            # 'ce90accuracy': soup.find("digitalglobe:ce90accuracy").string,
+            # 'rmseaccuracy': soup.find("digitalglobe:rmseaccuracy").string,
+            'corner_ne_lat': corner_ne_lat,
+            'corner_ne_lon': corner_ne_lon,
+            'corner_sw_lat': corner_sw_lat,
+            'corner_sw_lon': corner_sw_lon,
+            'lat': (corner_ne_lat + corner_sw_lat) / 2,
+            'lon': (corner_ne_lon + corner_sw_lon) / 2
+        }
+
+
+def download_image(x, y, zoom, profile):
+    url = _build_dg_url(x, y, zoom, profile)
+
+
+@celery.task(rate_limit="20/m")
+def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileService",
+              profile="MyDG_Color_Consumer_Profile"):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
     :param lat:
     :param lon:
@@ -61,96 +103,88 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
 
     # build url
     url = _build_dg_url(x, y, zoom, current_app.config['DG_EV_CONNECT_ID'],
-                        profile="Consumer_Profile")
+                        profile=profile)
 
     # get tile
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
-    response = requests.get(url, auth=auth)
-    assert (response.status_code == 200)
+    id = current_app.config['DG_EV_CONNECT_ID']
 
-    if int(response.headers['content-length']) < 1000:
-        print "Blank Tile... Exiting."
+    m, n = 11, 11
+    mosaic = Img.new('RGB', (256 * m, 256 * n))
+
+    tile_matrix = [[None for i in range(m)] for j in range(n)]
+
+    def download(args):
+        i, j = args
+        img_url = _build_dg_url(x + i - 1, y + j - 1, zoom, id, profile=profile)
+        r = requests.get(img_url, auth=auth)
+
+        if r.status_code != 200 or int(r.headers['content-length']) < 1000:
+            return False
+
+        f = StringIO.StringIO(r.content)
+        tile = Img.open(f)
+
+        mosaic.paste(tile, (i * 256, j * 256))
+        tile_matrix[i][j] = {'tile': tile, 'data': get_image_data(tile)}
+        return True
+
+    pool = ThreadPool(m * n)
+    results = pool.map(download,
+                       [(i, j) for i, row in enumerate(tile_matrix) for j, col in enumerate(row)])
+    pool.close()
+    pool.join()
+
+    if sum(results) < m * n:
+        print('some tiles failed to download')
         return
 
-    # get image
-    f = StringIO.StringIO(response.content)
-    img = Img.open(f)
+    data = tile_matrix[int(len(tile_matrix) / 2)][int(len(tile_matrix[0]) / 2)]['data']
 
-    # get exif data
-    try:
-        exif = img._getexif()
-        soup = BeautifulSoup(exif[37510])
-    except:
+    # adjust image data for all other tiles in mosaic
+    data['resolution'] = max(
+        [max([col['data']['resolution'] for col in row]) for row in tile_matrix])
+    data['date_acquired_earliest'] = min(
+        [min([col['data']['date_acquired_earliest'] for col in row]) for row in tile_matrix])
+    data['date_acquired_latest'] = min(
+        [min([col['data']['date_acquired_latest'] for col in row]) for row in tile_matrix])
+
+    data['corner_ne_lat'] = tile_matrix[0][-1]['data']['corner_ne_lat']
+    data['corner_ne_lon'] = tile_matrix[0][-1]['data']['corner_ne_lon']
+    data['corner_sw_lat'] = tile_matrix[-1][0]['data']['corner_sw_lat']
+    data['corner_sw_lon'] = tile_matrix[-1][0]['data']['corner_sw_lon']
+    data['url'] = "images/digital_globe/%s/%s" % (profile, str(uuid.uuid4()) + '.JPG')
+    data['source'] = "VHRI"
+
+    # quality checks
+    if (data['date_acquired_latest'] - data['date_acquired_earliest']).days > 200:
+        print('inconsistent acquisition date: %d days' % (
+            data['date_acquired_latest'] - data['date_acquired_earliest']).days)
         return
 
-    sample_size = float(soup.find_all("digitalglobe:groundsampledistance")[0].string)
-    if sample_size > 1.0:
-        print "Too low of resolution... exiting."
+    if data['resolution'] > 1:
+        print('poor resolution: %f' % data['resolution'])
         return
 
-    corner_ne = soup.find_all("gml:uppercorner")[0].string.split()
-    corner_ne_lon, corner_ne_lat = transform(corner_ne[0], corner_ne[1])
-    corner_sw = soup.find_all("gml:lowercorner")[0].string.split()
-    corner_sw_lon, corner_sw_lat = transform(corner_sw[0], corner_sw[1])
+    data.pop('resolution', None)
 
+    session = db.create_scoped_session()
     if location_id is None:
-        # create location if it does not exist
-        location = Location(lat=lat, lon=lon, source='random-generator')
-        db.session.add(location)
-        db.session.commit()
+        location = Location(lat=data['lat'], lon=data['lon'], source='random')
+        session.add(location)
+        session.flush()
         location_id = location.id
 
-    image_data = {
-        'location_id': location_id,
-        'date_acquired': datetime.datetime.strptime(
-            soup.find("digitalglobe:acquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
-        'date_acquired_earliest': datetime.datetime.strptime(
-            soup.find("digitalglobe:earliestacquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
-        'date_acquired_latest': datetime.datetime.strptime(
-            soup.find("digitalglobe:latestacquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
-        'image_type': soup.find("digitalglobe:producttype").string,
-        'copyright': soup.find("digitalglobe:copyright").string,
-        'corner_ne_lat': corner_ne_lat,
-        'corner_ne_lon': corner_ne_lon,
-        'corner_sw_lat': corner_sw_lat,
-        'corner_sw_lon': corner_sw_lon,
-        'lat': (corner_ne_lat + corner_sw_lat) / 2,
-        'lon': (corner_ne_lon + corner_sw_lon) / 2,
-        'url': "images/digital_globe/consumer_profile/%s" % uuid.uuid4() + '.JPG'
-    }
-    # check if location is on edge of tile and reject if it is...
-    # at 18 zoom tiles are 126*126 meters
-    if distance(image_data['lat'], image_data['lon'], lat, lon) > 50:
-        print "On edge of tile... exiting."
-        return
+    data['location_id'] = location_id
 
-    # draw box at center of lat/lon with 30 meter sides
-    ratio = 256.0 / 126.0
+    mosaic.show()
 
-    pixel_x = abs(image_data['corner_sw_lon'] - lon) / (
-        image_data['corner_ne_lon'] - image_data['corner_sw_lon']) * 256
-    pixel_y = abs(image_data['corner_ne_lat'] - lat) / (
-        image_data['corner_ne_lat'] - image_data['corner_sw_lat']) * 256
-    draw = ImageDraw.Draw(img)
-    draw.polygon([(pixel_x - 15 * ratio, pixel_y - 15 * ratio),
-                  (pixel_x + 15 * ratio, pixel_y - 15 * ratio),
-                  (pixel_x + 15 * ratio, pixel_y + 15 * ratio),
-                  (pixel_x - 15 * ratio, pixel_y + 15 * ratio)], fill=None, outline=128)
-
-    fnt = ImageFont.load_default()
-
-    draw.text((3, 0),
-              image_data['image_type'] + ' - ' + image_data['date_acquired'].strftime("%Y-%m-%d"),
-              font=fnt,
-              fill=(255, 255, 255, 128))
-
-    draw.text((3, 242), str(image_data['copyright']), font=fnt, fill=(255, 255, 255, 128))
-    draw.text((3, 232), 'Croplands.org', font=fnt, fill=(255, 255, 255, 128))
-
-    # img.show()
     out = StringIO.StringIO()
-    img.save(out, format='JPEG')
-    # img.show()
+    mosaic.save(out, format='JPEG')
+
+    image = Image(**data)
+    session.add(image)
+
     # save image to s3
     s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
                          current_app.config['AWS_SECRET_ACCESS_KEY'])
@@ -162,16 +196,14 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     content_type = 'image/jpeg'
 
     s3_file = Key(bucket)
-    s3_file.key = image_data['url']
+    s3_file.key = data['url']
     s3_file.set_metadata('cache-control', cache_control)
     s3_file.set_metadata('content-type', content_type)
     s3_file.set_contents_from_string(out.getvalue())
     s3_file.make_public()
 
     # save information to database
-    image = Image(**image_data)
-    db.session.add(image)
-    db.session.commit()
+    session.commit()
 
 
 def transform(x, y, source_projection='epsg:3857', target_projection='epsg:4326'):
@@ -203,11 +235,11 @@ def get_google_street_view_image(lat, lon, location=None):
 # start_lat, start_lon, end_lat, end_lon, api_key)
 #
 # response = requests.get(url)
-#     snapped_points = json.loads(response.data)['snappedPoints']
+# snapped_points = json.loads(response.data)['snappedPoints']
 #
-#     for pt in snapped_points:
-#         get_google_street_view_image.delay(lat=pt['location']['latitude'],
-#                                            lon=pt['location']['longitude'])
+# for pt in snapped_points:
+# get_google_street_view_image.delay(lat=pt['location']['latitude'],
+# lon=pt['location']['longitude'])
 
 @celery.task(rate_limit="1/s")
 def get_directions(origin_lat, origin_lon, destination_lat, destination_lon):
@@ -272,7 +304,7 @@ def has_street_view_image(lat, lon, heading):
 @celery.task
 def get_street_view_coverage(x, y, z=21):
     url = "http://mt1.googleapis.com/vt?hl=en-US&lyrs=svv|cb_client:apiv3&style=40,18&gl=US&x=%d&y=%d&z=%d" % (
-    x, y, z)
+        x, y, z)
     response = requests.get(url)
     f = StringIO.StringIO(response.content)
     img = Img.open(f)
