@@ -87,7 +87,7 @@ def download_image(x, y, zoom, profile):
     url = _build_dg_url(x, y, zoom, profile)
 
 
-@celery.task(rate_limit="5/m")
+@celery.task(rate_limit="15/m")
 def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileService",
               profile="MyDG_Color_Consumer_Profile"):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
