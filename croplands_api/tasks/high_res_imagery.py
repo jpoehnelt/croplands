@@ -87,7 +87,7 @@ def download_image(x, y, zoom, profile):
     url = _build_dg_url(x, y, zoom, profile)
 
 
-@celery.task(rate_limit="20/m")
+@celery.task(rate_limit="200/m")
 def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileService",
               profile="MyDG_Color_Consumer_Profile"):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
@@ -177,7 +177,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
 
     data['location_id'] = location_id
 
-    mosaic.show()
+    # mosaic.show()
 
     out = StringIO.StringIO()
     mosaic.save(out, format='JPEG')
