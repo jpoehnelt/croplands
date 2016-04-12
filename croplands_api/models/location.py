@@ -193,8 +193,9 @@ class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
 
-    location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
+    location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=True)
     source = db.Column(db.String)
+    source_description = db.Column(db.String)
     comments = db.Column(db.String)
 
     bearing = db.Column(db.Integer, default=-1)
