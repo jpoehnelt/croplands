@@ -168,11 +168,10 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
 
     data.pop('resolution', None)
 
-    session = db.create_scoped_session()
     if location_id is None:
         location = Location(lat=data['lat'], lon=data['lon'], source='random')
-        session.add(location)
-        session.flush()
+        db.session.add(location)
+        db.session.flush()
         location_id = location.id
 
     data['location_id'] = location_id
@@ -183,7 +182,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     mosaic.save(out, format='JPEG')
 
     image = Image(**data)
-    session.add(image)
+    db.session.add(image)
 
     # save image to s3
     s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
@@ -205,7 +204,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     print(data[url])
 
     # save information to database
-    session.commit()
+    db.session.commit()
 
 
 def transform(x, y, source_projection='epsg:3857', target_projection='epsg:4326'):
