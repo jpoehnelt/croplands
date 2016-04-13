@@ -65,7 +65,7 @@ def register():
 
 @auth.route('/login', methods=['POST'])
 @required_fields('email', 'password')
-@limiter.limit("10 per hour", methods=['POST'], error_message="Try again in an hour.", key_func=lambda: request.json['email'] if (
+@limiter.limit("20 per hour", methods=['POST'], error_message="Try again in an hour.", key_func=lambda: request.json['email'] if (
         hasattr(request, 'json') and hasattr(request.json, 'email')) else request.remote_addr)
 def login():
     user = User.from_login(request.json['email'], request.json['password'])
@@ -92,7 +92,7 @@ def forgot_password():
 
 @auth.route('/reset', methods=['POST'])
 @required_fields('password', 'token')
-@limiter.limit("2 per day", methods=['POST'])
+@limiter.limit("10 per day", methods=['POST'])
 def reset_password():
     token = request.json['token']
     email = decode_token(token, current_app.config['SECRET_KEY'],
@@ -105,7 +105,7 @@ def reset_password():
 
 @auth.route('/send_confirm', methods=['POST'])
 @required_fields('email')
-@limiter.limit("3 per day", methods=['POST'])
+@limiter.limit("10 per day", methods=['POST'])
 def send_confirm():
     user = User.from_email(request.json['email'])
     if user is not None:
