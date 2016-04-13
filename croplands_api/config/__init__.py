@@ -128,7 +128,7 @@ class Production(Development):
         },
         'build_classification_results': {
             'task': 'croplands_api.tasks.classifications.build_classifications_result',
-            'schedule': timedelta(days=2),
+            'schedule': timedelta(hours=1),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
         'build_data_coverage': {
