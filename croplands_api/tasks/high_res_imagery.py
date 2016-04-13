@@ -109,14 +109,14 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
     id = current_app.config['DG_EV_CONNECT_ID']
 
-    m, n = 5, 5
+    m, n = 9, 9
     mosaic = Img.new('RGB', (256 * m, 256 * n))
 
     tile_matrix = [[None for i in range(m)] for j in range(n)]
 
     def download(args):
         i, j = args
-        img_url = _build_dg_url(x + i - 1, y + j - 1, zoom, id, profile=profile)
+        img_url = _build_dg_url(x + i - m/2, y + j - n/2, zoom, id, profile=profile)
         r = requests.get(img_url, auth=auth)
 
         if r.status_code != 200 or int(r.headers['content-length']) < 1000:
@@ -140,7 +140,6 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
         return
 
     data = tile_matrix[int(len(tile_matrix) / 2)][int(len(tile_matrix[0]) / 2)]['data']
-
     # adjust image data for all other tiles in mosaic
     data['resolution'] = max(
         [max([col['data']['resolution'] for col in row]) for row in tile_matrix])
@@ -149,10 +148,10 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     data['date_acquired_latest'] = min(
         [min([col['data']['date_acquired_latest'] for col in row]) for row in tile_matrix])
 
-    data['corner_ne_lat'] = tile_matrix[0][-1]['data']['corner_ne_lat']
-    data['corner_ne_lon'] = tile_matrix[0][-1]['data']['corner_ne_lon']
-    data['corner_sw_lat'] = tile_matrix[-1][0]['data']['corner_sw_lat']
-    data['corner_sw_lon'] = tile_matrix[-1][0]['data']['corner_sw_lon']
+    data['corner_ne_lat'] = tile_matrix[-1][0]['data']['corner_ne_lat']
+    data['corner_ne_lon'] = tile_matrix[-1][0]['data']['corner_ne_lon']
+    data['corner_sw_lat'] = tile_matrix[0][-1]['data']['corner_sw_lat']
+    data['corner_sw_lon'] = tile_matrix[0][-1]['data']['corner_sw_lon']
     data['url'] = "images/digital_globe/%s/%s" % (profile, str(uuid.uuid4()) + '.JPG')
     data['source'] = "VHRI"
 
@@ -166,6 +165,18 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
         print('poor resolution: %f' % data['resolution'])
         return
 
+    # n = 100
+    # size = mosaic.size
+    # white_thresh = 200
+    # num_white = 0
+    # for i in range(n):
+    #     pixel = mosaic.getpixel((random.randrange(0,size[0]),random.randrange(0,size[1])))
+    #     if sum((int(color > white_thresh) for color in pixel[:3])) >= 2:
+    #         num_white += 1
+    #
+    # print num_white/float(n)
+
+
     data.pop('resolution', None)
 
     if location_id is None:
@@ -176,7 +187,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
 
     data['location_id'] = location_id
 
-    # mosaic.show()
+#    mosaic.show()
 
     out = StringIO.StringIO()
     mosaic.save(out, format='JPEG')
