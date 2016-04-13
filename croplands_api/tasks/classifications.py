@@ -40,14 +40,10 @@ def build_classifications_result():
 
     ATTRIBUTION = 'Global Food Security Analysis-Support Data at 30m, https://croplands.org'
     classes = [
-        {'id': 0, 'order': 0, 'label': 'Unknown', 'description': 'Not cropland is...'},
-        {'id': 1, 'order': 1, 'label': 'Cropland', 'description': 'Cropland is...'},
-        {'id': 2, 'order': 2, 'label': 'Forest', 'description': 'Forest is ...'},
-        {'id': 3, 'order': 3, 'label': 'Grassland', 'description': 'Grassland is ...'},
-        {'id': 4, 'order': 5, 'label': 'Barren', 'description': 'Barrenland is ...'},
-        {'id': 5, 'order': 7, 'label': 'Urban/Builtup', 'description': 'Urban is ...'},
-        {'id': 6, 'order': 4, 'label': 'Shrub', 'description': 'Shrub is ...'},
-        {'id': 7, 'order': 6, 'label': 'Water', 'description': 'Water is ...'}
+        {'id': -1, 'order': 0, 'label': 'Reject'},
+        {'id': 1, 'order': 1, 'label': 'Pure Cropland'},
+        {'id': 2, 'order': 2, 'label': 'Mixed Cropland'},
+        {'id': 3, 'order': 3, 'label': 'Not Cropland'}
     ]
     cmd = """
           SELECT
@@ -62,7 +58,7 @@ def build_classifications_result():
 
           FROM image
           JOIN location on image.location_id = location.id
-          WHERE classifications_count > 0 and location.use_validation = 0
+          WHERE classifications_count > 0 and not location.use_validation
           """
 
     result = db.engine.execute(cmd)
