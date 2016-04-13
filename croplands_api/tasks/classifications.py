@@ -62,7 +62,7 @@ def build_classifications_result():
 
           FROM image
           JOIN location on image.location_id = location.id
-          WHERE classifications_count > 0
+          WHERE classifications_count > 0 and location.use_validation = 0
           """
 
     result = db.engine.execute(cmd)
