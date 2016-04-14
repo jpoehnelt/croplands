@@ -109,7 +109,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     auth = current_app.config['DG_EV_USERNAME'], current_app.config['DG_EV_PASSWORD']
     id = current_app.config['DG_EV_CONNECT_ID']
 
-    m, n = 9, 9
+    m, n = 5,5
     mosaic = Img.new('RGB', (256 * m, 256 * n))
 
     tile_matrix = [[None for i in range(m)] for j in range(n)]
@@ -187,7 +187,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
 
     data['location_id'] = location_id
 
-#    mosaic.show()
+    #mosaic.show()
 
     out = StringIO.StringIO()
     mosaic.save(out, format='JPEG')
