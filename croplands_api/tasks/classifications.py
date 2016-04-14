@@ -58,7 +58,7 @@ def build_classifications_result():
 
           FROM image
           JOIN location on image.location_id = location.id
-          WHERE classifications_count > 0 and not location.use_validation
+          WHERE classifications_count > 0 and location.source = 'random' and not location.use_validation
           """
 
     result = db.engine.execute(cmd)
