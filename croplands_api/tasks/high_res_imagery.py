@@ -190,7 +190,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     #mosaic.show()
 
     out = StringIO.StringIO()
-    mosaic.save(out, format='JPEG')
+    mosaic.save(out, format='JPEG', optimize=True, quality=75)
 
     image = Image(**data)
     db.session.add(image)
