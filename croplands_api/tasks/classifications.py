@@ -12,21 +12,22 @@ def compute_image_classification_statistics(image_id):
     print "Computing Image Classification Statistics for Image #%d" % image_id
     image = Image.query.get(image_id)
 
-    classification_count = [0 for i in range(0, 10)]
+    classes = {}
 
     for record in image.classifications:
-        classification_count[record.classification] += 1
+        if record.classification not in classes:
+            classes[record.classification] = 1
+        else:
+            classes[record.classification] += 1
 
-    image.classifications_majority_class = 0
-    for i, count in enumerate(classification_count):
-        if count > classification_count[image.classifications_majority_class]:
-            image.classifications_majority_class = i
+    image.classifications_majority_class = None
+    for k in classes.keys():
+        if image.classifications_majority_class is None or classes[k] > classes[image.classifications_majority_class]:
+            image.classifications_majority_class = k
 
-    image.classifications_count = sum(classification_count)
-    image.classifications_majority_agreement = 100 * classification_count[
+    image.classifications_count = sum(classes.values())
+    image.classifications_majority_agreement = 100 * classes[
         image.classifications_majority_class] / image.classifications_count
-
-    image.classifications_count = sum(classification_count)
 
     db.session.commit()
 
