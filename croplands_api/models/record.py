@@ -6,6 +6,7 @@ from sqlalchemy import and_, func
 from sqlalchemy.dialects import postgresql
 from location import Image
 
+
 class Record(db.Model):
     """
     This is the essential data of the application.
@@ -26,7 +27,6 @@ class Record(db.Model):
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
     location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
 
-
     # when - no more granularity than month needed
     year = db.Column(db.Integer, nullable=False, index=True)
     month = db.Column(db.Integer, index=True)
@@ -35,7 +35,7 @@ class Record(db.Model):
                                                     year == func.extract('year',
                                                                          Image.date_acquired)),
                           foreign_keys=Image.location_id)
-    #
+
     date_created = db.Column(db.DateTime, default=db.func.now(), index=True)
     date_updated = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
@@ -54,9 +54,14 @@ class Record(db.Model):
     intensity = db.Column(db.Integer, default=0, index=True)
     water = db.Column(db.Integer, default=0, index=True)
 
-    # crop types
+    # crop types and coverage
     crop_primary = db.Column(db.Integer, default=0, index=True)
     crop_secondary = db.Column(db.Integer, default=0, index=True)
+    crop_tertiary = db.Column(db.Integer, default=0, index=True)
+
+    crop_primary_coverage = db.Column(db.Float)
+    crop_secondary_coverage = db.Column(db.Float)
+    crop_tertiary_coverage = db.Column(db.Float)
 
     # calculated rating that is periodically updated
     rating = db.Column(db.Integer, default=0, index=True)
