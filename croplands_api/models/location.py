@@ -193,7 +193,7 @@ class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey('user.id'))
 
-    location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=True)
+    location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
     source = db.Column(db.String)
     source_description = db.Column(db.String)
     comments = db.Column(db.String)
