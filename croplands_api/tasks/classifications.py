@@ -50,6 +50,7 @@ def build_classifications_result():
           SELECT
           location.lat,
           location.lon,
+          location.country,
           image.classifications_count,
           image.classifications_majority_class,
           image.classifications_majority_agreement,
@@ -66,7 +67,7 @@ def build_classifications_result():
     columns = result.keys()
     records = [
         [
-            row['lat'], row['lon'],
+            row['lat'], row['lon'], row['country'],
             row['classifications_count'],
             row['classifications_majority_class'],
             row['classifications_majority_agreement'],
