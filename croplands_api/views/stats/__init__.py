@@ -20,7 +20,7 @@ def get_leaders(since='2015-01-01', source='ground', limit=30):
           AND record.source_type = :source
           AND record.date_created > DATE (:since)
           GROUP BY record.user_id) AS record
-          LEFT JOIN "user" AS u ON u.id = record.user_id
+          LEFT JOIN users AS u ON u.id = record.user_id
           ORDER BY record.count DESC
           LIMIT :limit
           """)
