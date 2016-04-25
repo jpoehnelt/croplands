@@ -26,7 +26,7 @@ class Location(db.Model):
     images = relationship("Image", cascade="all, delete-orphan")
 
     # who
-    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
     source = db.Column(db.String)
 
     # where
@@ -191,7 +191,7 @@ class Location(db.Model):
 class Image(db.Model):
     __tablename__ = 'image'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
 
     location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
     source = db.Column(db.String)
@@ -236,7 +236,7 @@ class ImageClassification(db.Model):
     classification = db.Column(db.Integer, nullable=False)
     date_classified = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     image = db.Column(db.Integer, ForeignKey('image.id'))
-    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
     ip = db.Column(db.String, nullable=False)
 
 

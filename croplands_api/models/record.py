@@ -24,7 +24,7 @@ class Record(db.Model):
     protected = db.Column(db.Boolean, default=False)
 
     # foreign keys
-    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
     location_id = db.Column(db.Integer, ForeignKey('location.id'), index=True, nullable=False)
 
     # when - no more granularity than month needed
@@ -59,9 +59,9 @@ class Record(db.Model):
     crop_secondary = db.Column(db.Integer, default=0, index=True)
     crop_tertiary = db.Column(db.Integer, default=0, index=True)
 
-    crop_primary_coverage = db.Column(db.Float)
-    crop_secondary_coverage = db.Column(db.Float)
-    crop_tertiary_coverage = db.Column(db.Float)
+    crop_primary_coverage = db.Column(db.Integer)
+    crop_secondary_coverage = db.Column(db.Integer)
+    crop_tertiary_coverage = db.Column(db.Integer)
 
     # calculated rating that is periodically updated
     rating = db.Column(db.Integer, default=0, index=True)
@@ -91,7 +91,7 @@ class RecordHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # foreign keys
-    user_id = db.Column(db.Integer, ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, ForeignKey('users.id'))
     record_id = db.Column(db.Integer, ForeignKey('record.id'), index=True, nullable=False)
 
     # when
@@ -110,7 +110,7 @@ class RecordRating(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # foreign keys
-    user_id = db.Column(db.Integer, ForeignKey('user.id'), index=True, nullable=False)
+    user_id = db.Column(db.Integer, ForeignKey('users.id'), index=True, nullable=False)
     record_id = db.Column(db.Integer, ForeignKey('record.id'), index=True, nullable=False)
 
     # when

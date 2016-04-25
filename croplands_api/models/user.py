@@ -22,7 +22,7 @@ class User(db.Model):
     STATUS_DISABLED = 'DISABLED'
 
     ROLES = ['banned', 'registered', 'partner', 'mapping', 'validation', 'admin']
-    __tablename__ = 'user'
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime, default=db.func.now())
