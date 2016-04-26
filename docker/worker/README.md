@@ -1,6 +1,6 @@
 ### Docker Run Command
 
 ```
-docker pull justinwp/croplands-worker
-docker run -d --env-file ./config.env --restart=always  --name croplands-worker croplands-worker
+docker pull justinwp/croplands-server:worker-latest
+docker run -d --env-file ./config.env --restart=always  --name croplands-worker croplands-server:worker-latest
 ```
