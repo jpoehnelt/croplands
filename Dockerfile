@@ -1,9 +1,5 @@
-FROM python:2.7.11-wheezy
+FROM justinwp/croplands-base
 
-RUN echo deb http://http.debian.net/debian wheezy-backports main >> /etc/apt/sources.list
-RUN apt-get update && apt-get install -y --no-install-recommends libgeos-dev
-
-ARG CACHEBUST=1 # docker build --build-arg CACHE_DATE=$(date)
 RUN git clone -b docker https://github.com/justinwp/croplands
 WORKDIR /croplands
 
