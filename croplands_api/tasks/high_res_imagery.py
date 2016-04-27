@@ -89,7 +89,7 @@ def download_image(x, y, zoom, profile):
 
 @celery.task(rate_limit="20/m")
 def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileService",
-              profile="MyDG_Color_Consumer_Profile"):
+              profile="MyDG_Color_Consumer_Profile", training_only=False):
     """ Gets a tile and saves it to s3 while also saving the important acquisition date to the db.
     :param lat:
     :param lon:
@@ -176,11 +176,13 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     #
     # print num_white/float(n)
 
-
     data.pop('resolution', None)
 
     if location_id is None:
-        location = Location(lat=data['lat'], lon=data['lon'], source='random')
+        if training_only:
+            location = Location(lat=data['lat'], lon=data['lon'], source='random', use_validation=True)
+        else:
+            location = Location(lat=data['lat'], lon=data['lon'], source='random')
         db.session.add(location)
         db.session.flush()
         location_id = location.id
