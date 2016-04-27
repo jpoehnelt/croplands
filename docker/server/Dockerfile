@@ -1,9 +1,10 @@
 FROM justinwp/croplands-base
 
-RUN git clone https://github.com/justinwp/croplands
-WORKDIR /croplands
-
+ADD requirements.txt /croplands/requirements.txt
 RUN pip install -r /croplands/requirements.txt
+ADD . /croplands
+
+WORKDIR /croplands
 
 EXPOSE 8000
 
