@@ -1,7 +1,9 @@
 FROM justinwp/croplands-base
 
-RUN git clone https://github.com/justinwp/croplands
 WORKDIR /croplands
+
+ADD https://raw.githubusercontent.com/justinwp/croplands/master/requirements.txt /croplands/requirements.txt
+RUN pip install -r /croplands/requirements.txt
 
 RUN pip install -r /croplands/requirements.txt
 
