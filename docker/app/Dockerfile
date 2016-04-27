@@ -1,4 +1,4 @@
-FROM justinwp/croplands-server
+FROM justinwp/croplands-server:server-latest
 
 EXPOSE 8000
 
