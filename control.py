@@ -14,7 +14,8 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def beat():
-    celery_args = ['celery', 'beat', '-C', '--pidfile=', '-s','/home/ubuntu/celerybeat.db','-l','debug']
+    celery_args = ['celery', 'beat', '-C', '-l',
+                   'info']
     with manager.app.app_context():
         return celery_main(celery_args)
 
@@ -45,31 +46,56 @@ def purge_tasks():
                        '--broker=' + manager.app.config['CELERY_BROKER_URL']]
         return celery_main(celery_args)
 
+
 @manager.command
 def get_image():
     from croplands_api.tasks.high_res_imagery import get_image
 
     with manager.app.app_context():
 
+        # good test image for alignment:
+        # get_image(-16.571397081961127, -44.087328593117576, 18)
         import sqlite3
+        import time
         conn = sqlite3.connect('random_locations')
         c = conn.cursor()
         i = 0
         while True:
-            c.execute('SELECT * FROM pts WHERE sync=0 ORDER BY RANDOM() LIMIT 10')
+            c.execute(
+                'SELECT * FROM pts WHERE sync=0 AND lon > 7.44 AND lon < 11.7 AND lat < 37.4 AND lat > 30.1  ORDER BY RANDOM() LIMIT 100') # Tunisia
+                # 'SELECT * FROM pts WHERE sync=0 ORDER BY RANDOM() LIMIT 50')
+
             pts = c.fetchall()
 
-            if len(pts) == 0 or i > 10:
+            if len(pts) == 0 or i > 500:
                 break
 
             for pt in pts:
+                # print pt
                 i += 1
                 print("%d %s" % (i, str(pt)))
-                get_image.delay(pt[1], pt[0], 19)
+                time.sleep(2)
+                get_image.delay(pt[1], pt[0], 18)
                 c.execute("UPDATE pts SET sync = 1 WHERE id= ?", (pt[3],))
-
             conn.commit()
         return
+
+@manager.command
+def get_image_from_csv(path):
+    import csv
+
+    from croplands_api.tasks.high_res_imagery import get_image
+    with manager.app.app_context():
+
+        with open(path) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                print(float(row['lat']), float(row['lon']), 18)
+                try:
+                    get_image(float(row['lat']), float(row['lon']), 18, training_only=True)
+                except Exception as e:
+                    print(e)
+
 
 
 @manager.command
@@ -114,7 +140,8 @@ def random(n=10000000):
 
 
         pool = ThreadPool(50)
-        pts = [pt for result in pool.map(sample, [(p[0], int(p[1]/total_area*n), i) for i, p in enumerate(polygons)]) for pt in result]
+        pts = [pt for result in pool.map(sample, [(p[0], int(p[1] / total_area * n), i) for i, p in
+                                                  enumerate(polygons)]) for pt in result]
         pool.close()
         pool.join()
 
@@ -137,6 +164,14 @@ def coverage():
         # for y in range(500000, 1500000):
         # get_street_view_coverage(x, y, 21)
 
+
+@manager.command
+def classification():
+    with manager.app.app_context():
+        from croplands_api.tasks.classifications import build_classifications_result, compute_image_classification_statistics
+        build_classifications_result()
+        # compute_image_classification_statistics(30986)
+
 @manager.command
 def clear_mapids():
     """
@@ -155,8 +190,9 @@ def clear_mapids():
 def ndvi():
     from croplands_api.models import Record
     from croplands_api.tasks.records import get_ndvi
+
     with manager.app.app_context():
-        for r in db.session.query(Record).filter(Record.ndvi==None).all():
+        for r in db.session.query(Record).filter(Record.ndvi == None).all():
             get_ndvi.delay(r.id)
             print("Called get_ndvi.delay(%d)" % r.id)
 
@@ -170,7 +206,9 @@ def reference_data_coverage():
     """
     with manager.app.app_context():
         from croplands_api.tasks.reference_data_coverage import reference_data_coverage_task
+
         reference_data_coverage_task()
+
 
 @manager.command
 def fusion():
@@ -181,7 +219,8 @@ def fusion():
     """
     with manager.app.app_context():
         from croplands_api.tasks.records import build_fusion_tables
-        build_fusion_tables.delay()
+
+        build_fusion_tables()
 
 
 if __name__ == '__main__':
