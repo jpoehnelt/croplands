@@ -5,5 +5,4 @@ RUN pip install -r /croplands/requirements.txt
 
 WORKDIR /croplands
 
-USER nobody
 CMD python control.py worker
