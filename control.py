@@ -5,6 +5,7 @@ from celery.bin.celery import main as celery_main
 from croplands_api import create_app, db
 import json
 import redis
+import uuid
 
 app = create_app('Production')
 migrate = Migrate(app, db)
@@ -15,7 +16,7 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def beat():
     celery_args = ['celery', 'beat', '-C', '-l',
-                   'info', '--pidfile='] # no pidfile required
+                   'warning', '--pidfile='] # no pidfile required
     with manager.app.app_context():
         return celery_main(celery_args)
 
@@ -24,8 +25,8 @@ def beat():
 def worker(Q="croplands_api"):
     from random import randint
 
-    celery_args = ['celery', 'worker', '-l', 'info', '-n', str(chr(randint(71, 93))), '-Q', Q,
-                   '--concurrency', '4']
+    celery_args = ['celery', 'worker', '-l', 'warning', '-n', str(uuid.uuid4()).replace("-","")[0:12], '-Q', Q,
+                   '--concurrency', '3']
     print " ".join(celery_args)
     with manager.app.app_context():
         return celery_main(celery_args)
@@ -57,12 +58,12 @@ def get_image():
         # get_image(-16.571397081961127, -44.087328593117576, 18)
         import sqlite3
         import time
-        conn = sqlite3.connect('random_locations')
+        conn = sqlite3.connect('random_locations.sqlite')
         c = conn.cursor()
         i = 0
         while True:
             c.execute(
-                'SELECT * FROM pts WHERE sync=0 AND lon > 7.44 AND lon < 11.7 AND lat < 37.4 AND lat > 30.1  ORDER BY RANDOM() LIMIT 100') # Tunisia
+                'SELECT * FROM pts WHERE sync=0 AND lon > 97.2 AND lon < 105.7 AND lat < 20.5 AND lat > 5.4  ORDER BY RANDOM() LIMIT 100') # Thailand
                 # 'SELECT * FROM pts WHERE sync=0 ORDER BY RANDOM() LIMIT 50')
 
             pts = c.fetchall()
@@ -169,7 +170,7 @@ def coverage():
 def classification():
     with manager.app.app_context():
         from croplands_api.tasks.classifications import build_classifications_result, compute_image_classification_statistics
-        build_classifications_result()
+        build_classifications_result.delay()
         # compute_image_classification_statistics(30986)
 
 @manager.command
