@@ -12,6 +12,7 @@ from croplands_api.misc import PostMarkHandler
 import logging
 from oauth2client.service_account import ServiceAccountCredentials
 import ee
+from werkzeug.contrib.fixers import ProxyFix
 
 
 class JSONLimiter(Limiter):
@@ -86,6 +87,7 @@ def add_cors_headers(response):
 
 def create_app(config='Testing'):
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
     # Configure the flask app
     app.config.from_object("croplands_api.config." + config)
