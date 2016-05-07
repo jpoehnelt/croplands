@@ -123,17 +123,17 @@ class Production(Development):
     CELERYBEAT_SCHEDULE = {
         'build_fusion_tables': {
             'task': 'croplands_api.tasks.records.build_fusion_tables',
-            'schedule': timedelta(minutes=15),
+            'schedule': timedelta(hours=3),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
         'build_classification_results': {
             'task': 'croplands_api.tasks.classifications.build_classifications_result',
-            'schedule': timedelta(hours=1),
+            'schedule': timedelta(minutes=30),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
         'build_data_coverage': {
             'task': 'croplands_api.tasks.reference_data_coverage.reference_data_coverage_task',
-            'schedule': timedelta(hours=12),
+            'schedule': timedelta(days=1),
             'options': {'queue': CELERY_DEFAULT_QUEUE}
         },
     }
