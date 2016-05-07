@@ -10,7 +10,7 @@ def send_email(msg):
         msg = msg.__dict__
     except AttributeError as e:
         # dict object has no attribute __dict__
-        print e
+        pass
 
     if type(msg['recipients']) is list:
         msg['recipients'] = ",".join(msg['recipients'])
@@ -23,7 +23,6 @@ def send_email(msg):
         "From": 'info@croplands.org',
         "ReplyTo": 'info@croplands.org',
         "To": msg['recipients'],
-        "Bcc": 'jpoehnelt@usgs.gov',
         "Subject": msg.get('subject', ''),
         "HtmlBody": msg.get('html', ''),
         "TextBody": msg.get('body', ''),
@@ -35,7 +34,6 @@ def send_email(msg):
                'Content-Type': 'application/json',
                'Accept': 'application/json'
     }
-    print(headers)
     r = requests.post("https://api.postmarkapp.com/email", message, headers=headers)
-    print(r.text)
     assert r.status_code == 200
+    return r.json()
