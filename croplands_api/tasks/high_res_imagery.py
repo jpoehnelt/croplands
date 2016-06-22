@@ -59,13 +59,15 @@ def get_image_data(img):
         corner_sw = soup.find_all("gml:lowercorner")[0].string.split()
         corner_sw_lon, corner_sw_lat = transform(corner_sw[0], corner_sw[1])
 
+        format_string = "%a %b %d %H:%M:%S %Y"
+
         return {
             'date_acquired': datetime.datetime.strptime(
-                soup.find("digitalglobe:acquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
+                soup.find("digitalglobe:acquisitiondate").string.replace("UTC",""), format_string),
             'date_acquired_earliest': datetime.datetime.strptime(
-                soup.find("digitalglobe:earliestacquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
+                soup.find("digitalglobe:earliestacquisitiondate").string.replace("UTC",""), format_string),
             'date_acquired_latest': datetime.datetime.strptime(
-                soup.find("digitalglobe:latestacquisitiondate").string, "%Y-%m-%d %H:%M:%S"),
+                soup.find("digitalglobe:latestacquisitiondate").string.replace("UTC",""), format_string),
             'image_type': 'digitalglobe' + soup.find("digitalglobe:producttype").string,
             'copyright': soup.find("digitalglobe:copyright").string,
             # 'source': soup.find("digitalglobe:source").string,
