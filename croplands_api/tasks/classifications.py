@@ -44,10 +44,12 @@ def build_classifications_result():
         {'id': -1, 'order': 0, 'label': 'Reject'},
         {'id': 1, 'order': 1, 'label': 'Pure Cropland'},
         {'id': 2, 'order': 2, 'label': 'Mixed Cropland'},
-        {'id': 3, 'order': 3, 'label': 'Not Cropland'}
+        {'id': 3, 'order': 3, 'label': 'Not Cropland'},
+        {'id': 4, 'order': 4, 'label': 'Maybe Cropland'}
     ]
     cmd = """
           SELECT
+          image.id,
           location.lat,
           location.lon,
           location.country,
@@ -56,31 +58,42 @@ def build_classifications_result():
           image.classifications_majority_agreement,
           image.date_acquired,
           image.date_acquired_earliest,
-          image.date_acquired_latest
+          image.date_acquired_latest,
+          image.url,
+          location.use_validation
 
           FROM image
           JOIN location on image.location_id = location.id
-          WHERE classifications_count > 0 and location.source = 'random' and not location.use_validation
+          WHERE image.classifications_count > 0 and image.source = 'VHRI'
           """
 
     result = db.engine.execute(cmd)
     columns = result.keys()
-    records = [
-        [
+    print(columns)
+
+    training = []
+    all_data = []
+    for row in result:
+        data = [
+            row['id'],
             row['lat'], row['lon'], row['country'],
             row['classifications_count'],
             row['classifications_majority_class'],
             row['classifications_majority_agreement'],
             strftime(row['date_acquired']),
             strftime(row['date_acquired_earliest']),
-            strftime(row['date_acquired_latest'])
-        ] for row in result
-    ]
+            strftime(row['date_acquired_latest']),
+            "http://images.croplands.org" + row['url'].replace("images",""),
+            row['use_validation']
+        ]
 
-    print "Building json with %d classifications" % len(records)
+        if not row['use_validation']:
+            training.append(data)
 
-    content = {
-        'num_results': len(records),
+        all_data.append(data)
+    print("length: ", len(all_data))
+    training_content = {
+        'num_results': len(training),
         'meta': {
             'created': datetime.datetime.utcnow().isoformat(),
             'columns': columns,
@@ -88,19 +101,45 @@ def build_classifications_result():
             'license': LICENSE,
             'attribution': ATTRIBUTION
         },
-        'objects': records
+        'objects': training
+    }
+
+    all_data_content = {
+        'num_results': len(all_data),
+        'meta': {
+            'created': datetime.datetime.utcnow().isoformat(),
+            'columns': columns,
+            'class_mapping': [c['label'] for c in classes],
+            'license': LICENSE,
+            'attribution': ATTRIBUTION
+        },
+        'objects': all_data
     }
 
     # make csv file
-    csv_file = StringIO.StringIO()
+    csv_file_training = StringIO.StringIO()
+    csv_file_all_data = StringIO.StringIO()
 
-    writer = csv.writer(csv_file)
+    writer = csv.writer(csv_file_training)
     writer.writerow(columns)
-    for row in records:
+    for row in training:
         writer.writerow(row)
 
-    # upload to s3
-    upload_file_to_s3(json.dumps(content), '/public/json/classifications.json',
-                      'application/javascript')
-    upload_file_to_s3(csv_file.getvalue(), '/public/csv/classifications.csv',
+    upload_file_to_s3(csv_file_training.getvalue(), '/public/csv/classifications.csv',
                       'text/csv; charset=utf-8; header=present')
+
+    writer = csv.writer(csv_file_all_data)
+    writer.writerow(columns)
+    for row in all_data:
+        writer.writerow(row)
+
+    upload_file_to_s3(csv_file_all_data.getvalue(), '/public/csv/classifications_all.csv',
+                      'text/csv; charset=utf-8; header=present')
+
+    # upload to s3
+    upload_file_to_s3(json.dumps(training_content), '/public/json/classifications.json',
+                      'application/javascript')
+
+    # upload to s3
+    upload_file_to_s3(json.dumps(all_data_content), '/public/json/classifications_all.json',
+                      'application/javascript')
