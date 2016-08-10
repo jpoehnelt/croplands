@@ -171,7 +171,6 @@ def build_fusion_tables():
             if row['use_validation']:
                 writer_validation.writerow(row)
             else:
-                row['intensity'] = 'Unknown'
                 writer_training.writerow(row)
         except UnicodeEncodeError as e:
             print e, row
