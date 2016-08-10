@@ -1,4 +1,5 @@
 from croplands_api.models import db
+from croplands_api.models.base import BaseModel
 from croplands_api.utils.geo import get_destination
 from sqlalchemy.orm import relationship
 from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
@@ -6,7 +7,7 @@ from sqlalchemy.sql import text
 import random
 
 
-class Location(db.Model):
+class Location(BaseModel):
     """
     Stores a location.
     """
@@ -188,7 +189,7 @@ class Location(db.Model):
         self.lat, self.lon = get_destination(self.lat, self.lon, bearing, km)
 
 
-class Image(db.Model):
+class Image(BaseModel):
     __tablename__ = 'image'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey('users.id'))
@@ -229,7 +230,7 @@ class Image(db.Model):
     flagged = db.Column(db.Integer, default=0)
 
 
-class ImageClassification(db.Model):
+class ImageClassification(BaseModel):
     __tablename__ = 'image_classification'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -240,7 +241,7 @@ class ImageClassification(db.Model):
     ip = db.Column(db.String, nullable=False)
 
 
-class ImageClassificationProvider(db.Model):
+class ImageClassificationProvider(BaseModel):
     __tablename__ = 'image_classification_user'
 
     id = db.Column(db.Integer, primary_key=True)

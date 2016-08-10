@@ -1,8 +1,9 @@
 from croplands_api.models import db
+from croplands_api.models.base import BaseModel
 from sqlalchemy import ForeignKey
 
 
-class Point(db.Model):
+class Point(BaseModel):
     __tablename__ = 'point'
     id = db.Column(db.Integer, primary_key=True)
 

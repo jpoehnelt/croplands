@@ -1,8 +1,9 @@
 from croplands_api.models import db
+from croplands_api.models.base import BaseModel
 import json
 
 
-class Log(db.Model):
+class Log(BaseModel):
     __tablename__ = 'log'
 
     id = db.Column(db.Integer, primary_key=True)
