@@ -92,7 +92,7 @@ class Development(Default):
     CELERY_DEFAULT_QUEUE = 'croplands_api_dev'
 
     # Database
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:@localhost:5432/test"
+    SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_DEV_URI')
 
     # Mail
     POSTMARK_API_KEY = os.environ.get('POSTMARK_API_KEY')
