@@ -1,13 +1,14 @@
 from werkzeug.exceptions import BadRequest
 from croplands_api.models import db
-from sqlalchemy.orm import relationship
-from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
-from sqlalchemy import and_, func
+from croplands_api.models.base import BaseModel
+from sqlalchemy.orm import relationship, foreign
+from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint, and_, func, event
 from sqlalchemy.dialects import postgresql
 from location import Image
+from hashlib import sha256
 
 
-class Record(db.Model):
+class Record(BaseModel):
     """
     This is the essential data of the application.
     Stores information relating to a specific time and place.
@@ -39,7 +40,7 @@ class Record(db.Model):
     date_created = db.Column(db.DateTime, default=db.func.now(), index=True)
     date_updated = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
-    SOURCE_TYPE_CHOICES = ['ground', 'derived', 'unknown']
+    SOURCE_TYPE_CHOICES = ['ground', 'derived', 'unknown', 'streetview']
     source_id = db.Column(db.String)
     source_type = db.Column(db.String, nullable=False)
     source_description = db.Column(db.String)
@@ -78,11 +79,10 @@ class Record(db.Model):
         if kwargs['source_type'] not in Record.SOURCE_TYPE_CHOICES:
             raise BadRequest(description='Valid options for source_type include: ' + str(
                 Record.SOURCE_TYPE_CHOICES))
-
         super(Record, self).__init__(*args, **kwargs)
 
 
-class RecordHistory(db.Model):
+class RecordHistory(BaseModel):
     """
     This model tracks the state of a record and is created when a record is created or updated.
     """
@@ -101,7 +101,7 @@ class RecordHistory(db.Model):
     data = db.Column(db.String, nullable=False)
 
 
-class RecordRating(db.Model):
+class RecordRating(BaseModel):
     __tablename__ = 'record_rating'
     __table_args__ = (
         UniqueConstraint('user_id', 'record_id', name='one_rating_per_record_per_user'),

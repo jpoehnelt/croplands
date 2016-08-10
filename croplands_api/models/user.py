@@ -1,4 +1,5 @@
 from croplands_api.models import db
+from croplands_api.models.base import BaseModel
 from sqlalchemy.exc import IntegrityError
 from croplands_api import jwt
 import time
@@ -7,11 +8,14 @@ from croplands_api.exceptions import UserError
 from passlib.context import CryptContext
 from datetime import datetime
 import random
+from sqlalchemy import event
+import hashlib
+
 
 _pwd_context = CryptContext(schemes=["sha256_crypt", "md5_crypt", "des_crypt"])
 
 
-class User(db.Model):
+class User(BaseModel):
     """
     The base User object.
 
@@ -55,6 +59,10 @@ class User(db.Model):
         # hash password
         self.password = _pwd_context.encrypt(password)
         self.date_created = datetime.utcnow()
+
+        super(User, self).__init__()
+
+
 
     def __repr__(self):
         return u'User <"%s" (%s)>' % (self.email, self.id)
@@ -106,7 +114,7 @@ class User(db.Model):
     def from_login(self, email, password):
         user = User.query.filter_by(email=email.lower()).first()
 
-        time.sleep(random.randint(0,1)/100)
+        time.sleep(random.randint(0, 1) / 100)
 
         if user is None:
             password_hash = _pwd_context.encrypt('fake password here')
@@ -193,3 +201,4 @@ class User(db.Model):
         assert (role in User.ROLES)
         self.role = role
         db.session.commit()
+
