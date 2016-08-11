@@ -46,7 +46,7 @@ def check_for_street_view_image(data=None, **kwargs):
                 r = requests.get(image['url'])
                 if r.status_code == 200:
                     url = 'images/streetview/' + str(uuid.uuid4()) + '.jpg'
-                    image['url'] = url
+                    image['url'] = upload_image(cStringIO.StringIO(r.content), encoded_image=False, filename=url).key
             except Exception as e:
                 print(e)
 
