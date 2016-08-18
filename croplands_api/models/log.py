@@ -1,6 +1,5 @@
 from croplands_api.models import db
 from croplands_api.models.base import BaseModel
-import json
 
 
 class Log(BaseModel):
@@ -22,7 +21,12 @@ class Log(BaseModel):
 
     def __init__(self, request, response):
         self.request_method = request.method
-        self.request_data = request.data
+
+        if "/auth" in request.url:
+            self.request_data = None
+        else:
+            self.request_data = request.data
+
         self.request_url = request.url
 
         self.response_data = response.response[0]
