@@ -74,8 +74,6 @@ class Location(BaseModel):
 
         if self.bearing is not None and self.bearing != -1 and self.distance is not None and self.distance > 0:
             self.offset(self.bearing, self.distance)
-        else:
-            print 'offset unnecessary'
 
         if 'use_validation' not in kwargs and 'use_validation_locked' not in kwargs:
             self.use_validation = random.choice([True, False, False])
@@ -170,9 +168,9 @@ class Location(BaseModel):
         assert abs(lat) < 90, 'lat exceeds bounds'
         assert abs(lon) < 180, 'lon exceeds bounds'
 
-        sql = "SELECT * FROM location "
-        sql += "WHERE st_distance_sphere(st_makepoint(lon, lat), st_makepoint(%f,%f)) " % (
-            float(lon), float(lat))
+        # TODO paramterize
+        sql = "select * from (SELECT * FROM location WHERE abs(lon - %f) < %f and abs(lat - %f) < %f) as pt where st_distance_sphere(st_makepoint(pt.lon, pt.lat), st_makepoint(%f,%f)) " % (
+        float(lon), 0.1, float(lat), 0.1, float(lon), float(lat))
         sql += "< %d " % meters
 
         return db.session.query(Location).from_statement(text(sql)).all()
