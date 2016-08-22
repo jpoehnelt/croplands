@@ -1,6 +1,6 @@
 from croplands_api import celery
 from flask import current_app
-import json
+from flask import json
 import requests
 
 

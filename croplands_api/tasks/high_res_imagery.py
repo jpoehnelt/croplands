@@ -17,7 +17,7 @@ from croplands_api.utils.geo import (
     degree_to_tile_number
 )
 import uuid
-import json
+from flask import json
 import random
 
 from multiprocessing.pool import ThreadPool

@@ -5,7 +5,7 @@ import boto
 from boto.s3.key import Key
 import StringIO
 import gzip
-import json
+from flask import json
 
 
 def status(so_far, total):

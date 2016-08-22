@@ -3,7 +3,7 @@ from croplands_api.models import db, Image
 import StringIO
 import datetime
 import csv
-import json
+from flask import json
 from croplands_api.utils.s3 import upload_file_to_s3
 from croplands_api.utils.misc import strftime
 

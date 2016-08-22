@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 import base64
-import json
+from flask import json
 
 try:
     import secrets

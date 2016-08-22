@@ -1,6 +1,5 @@
 import logging
-import json
-from flask import render_template
+from flask import render_template, json
 
 class PostMarkHandler(logging.Handler):
     def __init__(self, url='https://api.postmarkapp.com/email', api_key=None):

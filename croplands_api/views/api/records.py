@@ -6,7 +6,7 @@ from processors import (
     add_user_to_posted_data,
     remove_relations
 )
-import json
+from flask import json
 from flask_restless.helpers import to_dict
 import copy
 
