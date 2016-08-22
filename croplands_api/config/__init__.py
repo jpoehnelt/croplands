@@ -22,7 +22,9 @@ class Default(object):
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_URL_SIGNING_KEY = os.environ.get('AWS_URL_SIGNING_KEY')
     AWS_URL_SIGNING_EXPIRATION_DEFAULT = 60 * 60
-    AWS_S3_BUCKET = 'gfsad30'
+    BUCKET = 'croplands-public'
+    GS_ACCESS_KEY = os.environ.get("GS_ACCESS_KEY")
+    GS_SECRET = os.environ.get("GS_SECRET")
 
     # Auth and JWT Settings
     JWT_AUTH_URL_RULE = '/auth/l'
@@ -68,7 +70,7 @@ class Testing(Default):
     TESTING = True
 
     # Amazon
-    AWS_S3_BUCKET = 'gfsad30-test'
+    BUCKET = 'croplands-test'
 
     # Celery and Tasks
     CELERY_ALWAYS_EAGER = False

@@ -200,11 +200,11 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
     db.session.add(image)
 
     # save image to s3
-    s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
-                         current_app.config['AWS_SECRET_ACCESS_KEY'])
+    gs = boto.connect_gs(current_app.config['GS_ACCESS_KEY'],
+                         current_app.config['GS_SECRET'])
 
     # Get bucket
-    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
+    bucket = gs.get_bucket(current_app.config['BUCKET'])
 
     cache_control = 'max-age=2000000'
     content_type = 'image/jpeg'
@@ -324,11 +324,11 @@ def get_street_view_coverage(x, y, z=21):
     img = Img.open(f)
 
     # save image to s3
-    s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
-                         current_app.config['AWS_SECRET_ACCESS_KEY'])
+    gs = boto.connect_gs(current_app.config['GS_ACCESS_KEY'],
+                         current_app.config['GS_SECRET'])
 
     # Get bucket
-    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
+    bucket = gs.get_bucket(current_app.config['BUCKET'])
 
     cache_control = 'max-age=200'
     content_type = 'image/png'

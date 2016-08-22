@@ -36,24 +36,24 @@ def upload_image(img=None, encoded_image=True, filename='images/' + str(uuid.uui
     img.thumbnail((1200, 1200))
     img.save(f, 'JPEG', quality=75)
 
-    # Connect to S3
-    s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
-                         current_app.config['AWS_SECRET_ACCESS_KEY'])
+    # Connect to google storage
+    gs = boto.connect_gs(current_app.config['GS_ACCESS_KEY'],
+                         current_app.config['GS_SECRET'])
 
     # Get bucket
-    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
+    bucket = gs.get_bucket(current_app.config['BUCKET'])
 
     # create file
-    s3_file = Key(bucket)
-    s3_file.key = filename
-    s3_file.set_metadata('cache-control', cache_control)
-    s3_file.set_metadata('content-type', content_type)
-    s3_file.set_contents_from_string(f.getvalue())
+    gs_file = Key(bucket)
+    gs_file.key = filename
+    gs_file.set_metadata('cache-control', cache_control)
+    gs_file.set_metadata('content-type', content_type)
+    gs_file.set_contents_from_string(f.getvalue())
 
     if public:
-        s3_file.make_public()
+        gs_file.make_public()
 
-    return s3_file
+    return gs_file
 
 
 def delete_image(key):
@@ -63,17 +63,17 @@ def delete_image(key):
     :return: None
     """
     # Connect to S3
-    s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
-                         current_app.config['AWS_SECRET_ACCESS_KEY'])
+    gs = boto.connect_gs(current_app.config['GS_ACCESS_KEY'],
+                         current_app.config['GS_SECRET'])
 
     # Get bucket
-    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
+    bucket = gs.get_bucket(current_app.config['AWS_S3_BUCKET'])
 
-    s3_file = Key(bucket)
+    gs_file = Key(bucket)
 
-    s3_file.key = key
+    gs_file.key = key
 
-    bucket.delete_key(s3_file)
+    bucket.delete_key(gs_file)
 
 
 def upload_file_to_s3(contents, key, content_type, do_gzip=True, max_age=300, public=True):
@@ -96,12 +96,11 @@ def upload_file_to_s3(contents, key, content_type, do_gzip=True, max_age=300, pu
     else:
         out.write(contents)
 
-    # Connect to S3
-    s3 = boto.connect_s3(current_app.config['AWS_ACCESS_KEY_ID'],
-                         current_app.config['AWS_SECRET_ACCESS_KEY'])
+    gs = boto.connect_gs(current_app.config['GS_ACCESS_KEY'],
+                         current_app.config['GS_SECRET'])
 
     # Get bucket
-    bucket = s3.get_bucket(current_app.config['AWS_S3_BUCKET'])
+    bucket = gs.get_bucket(current_app.config['BUCKET'])
 
     # Create key
     k = Key(bucket)
