@@ -131,17 +131,7 @@ def build_fusion_tables():
                   location.use_private as use_private
           FROM record
           LEFT JOIN location ON location.id = record.location_id
-          LEFT OUTER JOIN (SELECT * from crosstab (
-            $$SELECT location_id, url, replace(url, 'images/', 'http://images.croplands.org/')
-             FROM   image
-             WHERE  url not like '%%digital_globe%%'
-             $$)
-             AS t ( location_id int,
-              image_1 text, --varchar changed to text with replace function above
-              image_2 text,
-              image_3 text
-            )
-          ) images on location.id = images.location_id
+          LEFT JOIN (select s.location_id, s.images[1] as image_1, s.images[2] as image_2, s.images[3] as image_3 from (select location_id, (array_agg(replace(url, 'images/', 'https://images.croplands.org/'))) as images from image group by location_id) s) images on location.id = images.location_id
           WHERE location.use_deleted is false AND location.use_invalid is false
           """
 
