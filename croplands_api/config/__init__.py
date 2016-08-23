@@ -26,6 +26,7 @@ class Default(object):
     GS_ACCESS_KEY = os.environ.get("GS_ACCESS_KEY")
     GS_SECRET = os.environ.get("GS_SECRET")
 
+
     # Auth and JWT Settings
     JWT_AUTH_URL_RULE = '/auth/l'
     JWT_EXPIRATION_DELTA = timedelta(days=150)
@@ -54,6 +55,7 @@ class Default(object):
     DG_EV_CONNECT_ID = os.environ.get('DG_EV_CONNECT_ID')
     DG_EV_USERNAME = os.environ.get('DG_EV_USERNAME')
     DG_EV_PASSWORD = os.environ.get('DG_EV_PASSWORD')
+    VHRI_TILE_MAX_THREADS = os.environ.get('VHRI_TILE_MAX_THREADS', 5)
 
     # Misc
     ALLOWED_IMG_EXTENSIONS = ['jpg', 'png']

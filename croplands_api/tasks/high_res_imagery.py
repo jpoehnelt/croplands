@@ -133,7 +133,7 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
         tile_matrix[i][j] = {'tile': tile, 'data': get_image_data(tile)}
         return True
 
-    pool = ThreadPool(m * n)
+    pool = ThreadPool(min(current_app.config.get('VHRI_TILE_MAX_THREADS'), m * n))
     results = pool.map(download,
                        [(i, j) for i, row in enumerate(tile_matrix) for j, col in enumerate(row)])
     pool.close()
