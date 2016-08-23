@@ -122,6 +122,8 @@ def get_image(lat, lon, zoom, location_id=None, layer="DigitalGlobe:ImageryTileS
         r = requests.get(img_url, auth=auth)
 
         if r.status_code != 200 or int(r.headers['content-length']) < 1000:
+            if int(r.headers['content-length']) > 1000:
+                print(r.text)
             return False
 
         f = StringIO.StringIO(r.content)
